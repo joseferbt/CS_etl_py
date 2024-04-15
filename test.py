@@ -1,5 +1,28 @@
 import pandas as pd
 import sqlite3
+import yaml
+
+import psycopg2
+with open('config.yml','r') as f:
+    config = yaml.safe_load(f)
+    config_co = config['CO_SA']
+    con = psycopg2.connect(dbname=config_co['dbname'],user=config_co['user'],password=config_co['password'],host=config_co['host'])
+
+cur = con.cursor()
+cur.execute('select * from citas_generales')
+rows = cur.fetchall()
+
+df = pd.DataFrame(rows)
+#print(df.head())
+
+print(df.info())
+
+
+
+
+cur.close()
+con.close()
+
 
 # Create a DataFrame with a MultiIndex
 index = pd.MultiIndex.from_tuples([('A', 1), ('A', 2), ('B', 1)], names=['group', 'value'])
