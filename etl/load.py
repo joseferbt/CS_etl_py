@@ -2,7 +2,7 @@ import pandas as pd
 from pandas import DataFrame
 from sqlalchemy import Engine
 def load_data_ips(dim_ips,etl_conn):
-    dim_ips.to_sql('dim_ips', etl_conn, if_exists='append', index_label='key_ips')
+    dim_ips.to_sql('dim_ips', etl_conn, if_exists='replace', index_label='key_ips')
 
 def load_data_medico(dim_medico:DataFrame,etl_conn:Engine):
     dim_medico.to_sql('dim_medico', etl_conn, if_exists='replace', index_label='key_medico')

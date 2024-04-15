@@ -16,7 +16,7 @@ def transform_medico(dim_medico: DataFrame) -> DataFrame:
     return dim_medico
 
 
-def transform_persona(args: list(DataFrame)) -> DataFrame:
+def transform_persona(args) -> DataFrame:
     beneficiarios, cotizantes, cot_ben = args
     cotizantes.rename(columns={'cedula': 'numero_identificacion'}, inplace=True)
     cotizantes.drop(
@@ -62,7 +62,7 @@ def transform_fecha() -> DataFrame:
     dim_fecha["weekend"] = dim_fecha["weekday"].apply(lambda x: x > 4)
     return dim_fecha
 
-def transform_trans_servicio(args:list(DataFrame)) -> DataFrame:
+def transform_trans_servicio(args) -> DataFrame:
     df_citas, df_urgencias, df_hosp = args
     df_hosp.rename(columns={'codigo_hospitalizacion': 'codigo_servicio'}, inplace=True)
     df_urgencias.rename(columns={'codigo_urgencia': 'codigo_servicio'}, inplace=True)
@@ -86,8 +86,8 @@ def transform_trans_servicio(args:list(DataFrame)) -> DataFrame:
         lambda x: timedelta(hours=x.hour, minutes=x.minute, seconds=x.second))
     trans_servicio['fecha_hora_atencion'] = trans_servicio['fecha_atencion'] + trans_servicio['hora_atencion']
     trans_servicio['fecha_hora_solicitud'] = trans_servicio['fecha_solicitud'] + trans_servicio['hora_solicitud']
-
-def transform_hecho_atencion(args:list(DataFrame)) -> DataFrame:
+    return trans_servicio
+def transform_hecho_atencion(args) -> DataFrame:
     df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha = args
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_fecha']], left_on='fecha_atencion', right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
