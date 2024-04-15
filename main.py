@@ -8,8 +8,9 @@ from etl import extract, transform, load
 
 
 with open('config.yml', 'r') as f:
-    config_co = yaml.safe_load(f)['CO_SA']
-    config_etl = yaml.safe_load(f)['ETL_PRO']
+    config = yaml.safe_load(f)
+    config_co = config['CO_SA']
+    config_etl = config['ETL_PRO']
 
 # Construct the database URL
 url_co = (f"{config_co['drivername']}://{config_co['user']}:{config_co['password']}@{config_co['host']}:"
