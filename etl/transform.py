@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 
 import holidays
 import numpy as np
@@ -8,11 +8,13 @@ from pandas import DataFrame
 
 def transform_ips(dim_ips: DataFrame) -> DataFrame:
     dim_ips.replace({'': '0'}, inplace=True)
+    dim_ips["saved"] = date.today()
     return dim_ips
 
 
 def transform_medico(dim_medico: DataFrame) -> DataFrame:
     dim_medico.replace({np.nan: 'no aplica', ' ': 'no aplica'}, inplace=True)
+    dim_medico["saved"] = date.today()
     return dim_medico
 
 
@@ -33,6 +35,9 @@ def transform_persona(args) -> DataFrame:
     beneficiario.rename(columns={'cotizante': 'grupo_familiar'}, inplace=True)
     beneficiario.drop(columns=['beneficiario'], inplace=True)
     dim_persona = pd.concat([beneficiario, cotizantes])
+    dim_persona["saved"] = date.today()
+    dim_persona.reset_index(drop=True, inplace=True)
+
     return dim_persona
 
 
@@ -60,6 +65,7 @@ def transform_fecha() -> DataFrame:
     dim_fecha["is_Holiday"] = dim_fecha["date"].apply(lambda x: x in co_holidays)
     dim_fecha["holiday"] = dim_fecha["date"].apply(lambda x: co_holidays.get(x))
     dim_fecha["weekend"] = dim_fecha["weekday"].apply(lambda x: x > 4)
+    dim_fecha["saved"] = date.today()
     return dim_fecha
 
 def transform_trans_servicio(args) -> DataFrame:
@@ -86,25 +92,27 @@ def transform_trans_servicio(args) -> DataFrame:
         lambda x: timedelta(hours=x.hour, minutes=x.minute, seconds=x.second))
     trans_servicio['fecha_hora_atencion'] = trans_servicio['fecha_atencion'] + trans_servicio['hora_atencion']
     trans_servicio['fecha_hora_solicitud'] = trans_servicio['fecha_solicitud'] + trans_servicio['hora_solicitud']
+    trans_servicio["saved"] = date.today()
+    trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
 def transform_hecho_atencion(args) -> DataFrame:
     df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha = args
-    hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_fecha']], left_on='fecha_atencion', right_on='date')
+    hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(
-        columns={'key_fecha': 'key_fecha_atencion', 'id_medico': 'cedula', 'id_usuario': 'numero_identificacion'},
+        columns={'key_dim_fecha': 'key_dim_fecha_atencion', 'id_medico': 'cedula', 'id_usuario': 'numero_identificacion'},
         inplace=True)
-    hecho_atencion = pd.merge(hecho_atencion, dim_fecha[['date', 'key_fecha']], left_on='fecha_solicitud',
+    hecho_atencion = pd.merge(hecho_atencion, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_solicitud',
                               right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
-    hecho_atencion.rename(columns={'key_fecha': 'key_fecha_solicitud'}, inplace=True)
-    echo_atencion = hecho_atencion.merge(dim_persona[['key_persona', 'numero_identificacion']])
+    hecho_atencion.rename(columns={'key_dim_fecha': 'key_dim_fecha_solicitud'}, inplace=True)
+    echo_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
-    hecho_atencion = hecho_atencion.merge(dim_medico[['key_medico', 'cedula', 'id_ips']])
+    hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
     hecho_atencion.drop(columns=['cedula'], inplace=True)
-    hecho_atencion = hecho_atencion.merge(dim_ips[['key_ips', 'id_ips']])
+    hecho_atencion = hecho_atencion.merge(dim_ips[['key_dim_ips', 'id_ips']])
     hecho_atencion.drop(columns=['id_ips'], inplace=True)
-    hecho_atencion = hecho_atencion.merge(dim_servicio[['name', 'key_servicio']], left_on='tipo_servicio',
+    hecho_atencion = hecho_atencion.merge(dim_servicio[['name', 'key_dim_servicio']], left_on='tipo_servicio',
                                           right_on='name')
     hecho_atencion.drop(columns=['name', 'tipo_servicio'], inplace=True)
     hecho_atencion['tiempo_espera'] = hecho_atencion['fecha_hora_atencion'] - hecho_atencion['fecha_hora_solicitud']
@@ -112,8 +120,10 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion['tiempo_espera_minutos'] = hecho_atencion['tiempo_espera'].dt.seconds // 60
     hecho_atencion['tiempo_espera_horas'] = hecho_atencion['tiempo_espera'].dt.seconds // (60 * 60)
     hecho_atencion['tiempo_espera_segundos'] = hecho_atencion['tiempo_espera'].dt.seconds
+    hecho_atencion["saved"] = date.today()
 
     hecho_atencion.drop(
-        columns=['tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'key_trans', 'hora_solicitud', 'hora_atencion',
-                 'fecha_hora_solicitud', 'fecha_hora_atencion'], inplace=True)
+        columns=['tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'hora_solicitud', 'hora_atencion',
+                 'fecha_hora_solicitud', 'fecha_hora_atencion, codigo_servicio'], inplace=True)
+
     return hecho_atencion
