@@ -21,3 +21,6 @@ def load_data_trans_servicio(trans_servicio:DataFrame,etl_conn:Engine):
 
 def load_hecho_atencion(hecho_atencion:DataFrame,etl_conn:Engine):
     hecho_atencion.to_sql('hecho_atencion', etl_conn, if_exists='replace', index_label='key_hecho_atencion')
+
+def load(table:DataFrame,etl_conn:Engine):
+    table.to_sql(f'dim_{table}', etl_conn, if_exists='replace', index_label=f'key_{table}')
