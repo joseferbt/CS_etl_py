@@ -106,7 +106,7 @@ def transform_hecho_atencion(args) -> DataFrame:
                               right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
-    echo_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
+    hecho_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
     hecho_atencion.drop(columns=['cedula'], inplace=True)
