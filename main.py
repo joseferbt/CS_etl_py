@@ -1,8 +1,8 @@
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 import yaml
 from etl import extract, transform, load
-
+import psycopg2
 
 
 
@@ -20,6 +20,18 @@ url_etl = (f"{config_etl['drivername']}://{config_etl['user']}:{config_etl['pass
 # Create the SQLAlchemy Engine
 co_sa = create_engine(url_co)
 etl_conn = create_engine(url_etl)
+
+inspector = inspect(etl_conn)
+tnames = inspector.get_table_names()
+
+if not tnames:
+    conn = psycopg2.connect(dbname=config_etl['dbname'], user=config_etl['user'],password=config_etl['password'],host=config_etl['host'],port=config_etl['port'])
+    cur = conn.cursor()
+    with open('sqlscripts.yml', 'r') as f:
+        sql = yaml.safe_load(f)
+        for key,val in sql.items():
+            cur.execute(val)
+            conn.commit()
 
 # extract
 dim_ips = extract.extract_ips(co_sa)

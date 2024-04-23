@@ -13,7 +13,7 @@ def transform_ips(dim_ips: DataFrame) -> DataFrame:
 
 
 def transform_medico(dim_medico: DataFrame) -> DataFrame:
-    dim_medico.replace({np.nan: 'no aplica', ' ': 'no aplica'}, inplace=True)
+    dim_medico.replace({np.nan: 'no aplica', ' ': 'no aplica','':'no_aplica'}, inplace=True)
     dim_medico["saved"] = date.today()
     return dim_medico
 
@@ -100,12 +100,12 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(
-        columns={'key_dim_fecha': 'key_dim_fecha_atencion', 'id_medico': 'cedula', 'id_usuario': 'numero_identificacion'},
+        columns={'key_dim_fecha': 'key_fecha_atencion', 'id_medico': 'cedula', 'id_usuario': 'numero_identificacion'},
         inplace=True)
     hecho_atencion = pd.merge(hecho_atencion, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_solicitud',
                               right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
-    hecho_atencion.rename(columns={'key_dim_fecha': 'key_dim_fecha_solicitud'}, inplace=True)
+    hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
     echo_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
@@ -124,6 +124,6 @@ def transform_hecho_atencion(args) -> DataFrame:
 
     hecho_atencion.drop(
         columns=['tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'hora_solicitud', 'hora_atencion',
-                 'fecha_hora_solicitud', 'fecha_hora_atencion, codigo_servicio'], inplace=True)
+                 'fecha_hora_solicitud', 'fecha_hora_atencion', 'codigo_servicio'], inplace=True)
 
     return hecho_atencion

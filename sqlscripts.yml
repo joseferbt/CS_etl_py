@@ -41,7 +41,6 @@ dim_medico :
   create table dim_medico
   (
   key_dim_medico        bigint not null
-  constraint dim_medico_pk
   primary key,
   cedula                text,
   nombre                text,
@@ -57,7 +56,6 @@ dim_persona :
   create table dim_persona
   (
   key_dim_persona       bigint not null
-  constraint dim_persona_pk
   primary key,
   tipo_documento        text,
   numero_identificacion text,
@@ -75,47 +73,41 @@ dim_servicio :
   create table dim_servicio
   (
   key_dim_servicio bigint not null
-  constraint dim_servicio_pk
   primary key,
   name             text,
   descripcion      text,
   saved            date
   );
 
+trans_servicio :
+  create table trans_servicio
+  (
+  key_trans_servicio   bigint primary key,
+  codigo_servicio      text,
+  id_usuario           text,
+  id_medico            text,
+  fecha_solicitud      timestamp,
+  hora_solicitud       bigint,
+  fecha_atencion       timestamp,
+  hora_atencion        bigint,
+  tipo_servicio        text,
+  fecha_hora_atencion  timestamp,
+  fecha_hora_solicitud timestamp,
+  saved                date
+  );
 hecho_atencion :
   create table hecho_atencion
   (
   key_hecho_atencion     bigint not null
   primary key,
-  key_trans_servicio     bigint
-  constraint hecho_atencion___fk
-  FOREIGN KEY(key_trans_servicio)
-  references trans_servicio (key_trans_servicio),
+  key_trans_servicio     bigint  references trans_servicio(key_trans_servicio),
   saved                  date,
-  key_fecha_atencion     bigint
-  CONSTRAINT hecho_atencion___fk_2 
-  FOREIGN KEY (key_fecha_atencion) 
-  REFERENCES public.dim_fecha(key_dim_fecha),
-  key_fecha_solicitud    bigint
-  CONSTRAINT hecho_atencion___fk_3 
-  FOREIGN KEY (key_fecha_solicitud) 
-  REFERENCES public.dim_fecha(key_dim_fecha);,
-  key_dim_persona        bigint
-  CONSTRAINT hecho_atencion___fk_4 
-  FOREIGN KEY (key_dim_persona) 
-  REFERENCES public.dim_persona(key_dim_persona),
-  key_dim_medico         bigint
-  CONSTRAINT hecho_atencion___fk_5 
-  FOREIGN KEY (key_dim_medico) 
-  REFERENCES public.dim_medico(key_dim_medico,
-  key_dim_ips            bigint
-  CONSTRAINT hecho_atencion___fk_6
-  FOREIGN KEY (key_dim_ips) 
-  REFERENCES public.dim_ips(key_dim_ips);,
-  key_dim_servicio       bigint
-  CONSTRAINT hecho_atencion___fk_7 
-  FOREIGN KEY (key_dim_servicio) 
-  REFERENCES public.dim_servicio(key_dim_servicio),
+  key_fecha_atencion     bigint  REFERENCES public.dim_fecha(key_dim_fecha),
+  key_fecha_solicitud    bigint  REFERENCES public.dim_fecha(key_dim_fecha),
+  key_dim_persona        bigint  REFERENCES public.dim_persona(key_dim_persona),
+  key_dim_medico         bigint  REFERENCES public.dim_medico(key_dim_medico),
+  key_dim_ips            bigint  REFERENCES public.dim_ips(key_dim_ips),
+  key_dim_servicio       bigint  REFERENCES public.dim_servicio(key_dim_servicio),
   tiempo_espera_dias     bigint,
   tiempo_espera_minutos  integer,
   tiempo_espera_horas    integer,
