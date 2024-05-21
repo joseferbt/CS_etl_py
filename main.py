@@ -33,45 +33,40 @@ inspector_wh_aw = inspect(wh_aw)
 tnames = inspector_wh_aw.get_table_names()
 
 #sqlscripts.yml
-if not tnames:
-    conn = psycopg2.connect(dbname=config_wh['dbname'], user=config_wh['user'],password=config_wh['password'],host=config_wh['host'],port=config_wh['port'])
-    cur = conn.cursor()
-    with open('sqlscripts.yml', 'r') as f:
-        sql = yaml.safe_load(f)
-        for key,val in sql.items():
-            cur.execute(val)
-            conn.commit()
+# if not tnames:
+#     conn = psycopg2.connect(dbname=config_wh['dbname'], user=config_wh['user'],password=config_wh['password'],host=config_wh['host'],port=config_wh['port'])
+#     cur = conn.cursor()
+#     with open('sqlscripts.yml', 'r') as f:
+#         sql = yaml.safe_load(f)
+#         for key,val in sql.items():
+#             cur.execute(val)
+#             conn.commit()
 
 
 # extract
-dimCurrency = extract.extractCurrency(db_aw)
 # dimPromotion = extract.extractPromotion(db_aw)
 # dimCustomer = extract.extractCustomer(db_aw)
-# dimDate = extract.extractDate(db_aw)
 # dimProduct = extract.extractProduct(db_aw)
-# dimSalesTerritory = extract.extractSalesTerritory(db_aw)
 # dimSupplier = extract.extractSupplier(db_aw)
 # dimEmployee = extract.extractEmployee(db_aw)
 # dimReseller = extract.extractReseller(db_aw)
-# dimGeography = extract.extractGeography(db_aw)
-#
-#
-# # transform
+dimCurrency = extract.extractCurrency(db_aw)
+dimSalesTerritory = extract.extractSalesTerritory(db_aw)
+dimGeography = extract.extractGeography(db_aw)
+
+
+# transform
 dimCurrency = transform.transformCurrency(dimCurrency)
-# dim_persona = transform.transform_persona(dim_persona)
-# dim_medico = transform.transform_medico(dim_medico)
-# trans_servicio = transform.transform_trans_servicio(trans_servicio)
-# dim_fecha = transform.transform_fecha()
-# dim_servicio = transform.transform_servicio()
-#
-# #load
+dimDate = transform.transformDate()
+dimSalesTerritory = transform.transformSalesTerritory(dimSalesTerritory)
+dimGeography = transform.transformGeography(dimGeography)
+
+# #load#
 load.load_data_currency(dimCurrency,wh_aw)
-# load.load_data_fecha(dim_fecha,wh_aw)
-# load.load_data_servicio(dim_servicio,wh_aw)
-# load.load_data_persona(dim_persona,wh_aw)
-# load.load_data_medico(dim_medico,wh_aw)
-# load.load_data_trans_servicio(trans_servicio,wh_aw)
-#
+load.load_data_date(dimDate,wh_aw)
+load.load_data_sales_territory(dimSalesTerritory,wh_aw)
+load.load_data_geography(dimGeography, wh_aw)
+
 
 # #hecho
 # hecho_atencion = extract.extract_hehco_atencion(etl_conn)

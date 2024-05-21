@@ -22,6 +22,45 @@ def extractCurrency(con: Engine):
     #dimCurrency.info()
     return dimCurrency
 
+def extractCustomer(con: Engine):
+    customer = pd.read_sql_table('Customer', con, schema='Sales')
+    person = pd.read_sql_table('Person', con, schema='Person')
+    territory = pd.read_sql_table('SalesTerritory', con, schema='Sales')
+
+    return [customer, person, territory]
+
+def extractGeography(con: Engine):
+    # Leer las tablas excluyendo las columnas problemáticas
+    address_query = """
+        SELECT City, StateProvinceID, PostalCode
+        FROM Person.Address
+    """
+
+    address = pd.read_sql_query(address_query, con)
+    stateProvince = pd.read_sql_table('StateProvince', con, schema='Person')
+    countryRegion = pd.read_sql_table('CountryRegion', con, schema='Person')
+
+    return [address, stateProvince, countryRegion]
+
+
+def extractSalesTerritory(con: Engine):
+    # Leer las tablas excluyendo las columnas problemáticas
+    salesTerritory_query = """
+        SELECT TerritoryID, Name, CountryRegionCode, "Group"
+        FROM Sales.SalesTerritory
+    """
+
+    salesTerritory = pd.read_sql_query(salesTerritory_query, con)
+    countryRegion = pd.read_sql_table('CountryRegion', con, schema='Person')
+
+    return [salesTerritory, countryRegion]
+
+
+
+
+
+
+
 #
 # def extract_medico(con: Engine):
 #     dim_medico = pd.read_sql_table('medico', con)

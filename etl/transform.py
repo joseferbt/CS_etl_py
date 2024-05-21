@@ -4,24 +4,154 @@ import holidays
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from googletrans import Translator
+import calendar
+from babel.dates import format_date
+
+
+import pandas as pd
+
+
+def load_country_translations(csv_file):
+    translations = pd.read_csv(csv_file)
+    # Convertir los códigos de país a minúsculas (o mayúsculas)
+    translations['alpha2'] = translations['alpha2'].str.lower()
+    return translations
+
+
+def translate_country_names(country_codes, translations, target_lang):
+    translated_names = []
+    for code in country_codes:
+        # Convertir el código de país a minúsculas (o mayúsculas)
+        code_lower = code.lower()
+        translation = translations.loc[translations['alpha2'] == code_lower, target_lang]
+        translated_names.append(translation.values[0] if not translation.empty else "")
+    return translated_names
 
 
 def transformCurrency(dimCurrency: DataFrame) -> DataFrame:
+    # Renombrar columnas
     dimCurrency.rename(columns={'CurrencyCode': 'CurrencyAlternateKey'}, inplace=True)
     dimCurrency.rename(columns={'Name': 'CurrencyName'}, inplace=True)
-    #TODO: quitar modifieddate
-    #print(dimCurrency.head())
+
+    # Eliminar la columna modifiedDate
+    dimCurrency.drop(columns=['ModifiedDate'], inplace=True)
+
+    # print(dimCurrency.head())
     return dimCurrency
 
 
+def transformCustomer(args) -> DataFrame:
+    customer, person, territory = args
+    # Renombrar columnas
+    customer.rename(columns={'AccountNumber': 'CustomerAlternateKey'}, inplace=True)
+
+    # Eliminar la columna modifiedDate
+    customer.drop(columns=['ModifiedDate'], inplace=True)
+    customer.drop(columns=['rowguid'], inplace=True)
+    person.drop(columns=['ModifiedDate'], inplace=True)
+    person.drop(columns=['rowguid'], inplace=True)
+    territory.drop(columns=['ModifiedDate'], inplace=True)
+    territory.drop(columns=['rowguid'], inplace=True)
+
+    customer = customer.merge(territory, left_on='TerritoryID', right_on='TerritoryID', how='left')
+    print(customer.head())
+    print(person.head())
+    print(territory.head())
 
 
+def transformGeography(args) -> DataFrame:
+    address, stateProvince, countryRegion = args
+
+    # Eliminar la columna modifiedDate
+    stateProvince.drop(columns=['ModifiedDate', 'rowguid', 'IsOnlyStateProvinceFlag'], inplace=True)
+    countryRegion.drop(columns=['ModifiedDate'], inplace=True)
+    dimGeography = address.merge(stateProvince, left_on='StateProvinceID', right_on='StateProvinceID', how='left')
+    dimGeography.rename(columns={'Name': 'StateProvinceName', 'TerritoryID': 'SalesTerritoryKey'}, inplace=True)
+    dimGeography = dimGeography.merge(countryRegion, left_on='CountryRegionCode', right_on='CountryRegionCode',
+                                      how='left')
+    dimGeography.rename(columns={'Name': 'EnglishCountryName'}, inplace=True)
+
+    # Cargar las traducciones de los países desde un archivo CSV
+    country_translations_es = load_country_translations('utils/es.csv')
+    country_translations_fr = load_country_translations('utils/fr.csv')
+
+    dimGeography['SpanishCountryName'] = translate_country_names(dimGeography['CountryRegionCode'],
+                                                                 country_translations_es, 'name')
+    dimGeography['FrenchCountryName'] = translate_country_names(dimGeography['CountryRegionCode'],
+                                                                country_translations_fr, 'name')
+
+    # Reorganizar el orden de las columnas en dimGeography si es necesario
+    desired_column_order = [
+        'City', 'StateProvinceCode', 'StateProvinceName', 'CountryRegionCode', 'EnglishCountryName',
+        'SpanishCountryName', 'FrenchCountryName', 'PostalCode', 'SalesTerritoryKey'
+    ]
+
+    # Verificar que todas las columnas deseadas están en dimGeography
+    for column in desired_column_order:
+        if column not in dimGeography.columns:
+            print(f"Warning: Column '{column}' not found in dimGeography. It will be skipped in reordering.")
+
+    # Reorganizar las columnas
+    dimGeography = dimGeography[[col for col in desired_column_order if col in dimGeography.columns]]
+
+    return dimGeography
 
 
+def transformSalesTerritory(args) -> DataFrame:
+    salesTerritory, countryRegion = args
+
+    salesTerritory.rename(columns={'Name': 'SalesTerritoryRegion', 'TerritoryID': 'SalesTerritoryAlternateKey',
+                                   'Group': 'SalesTerritoryGroup'}, inplace=True)
+    dimSalesTerritory = salesTerritory.merge(countryRegion, left_on='CountryRegionCode', right_on='CountryRegionCode',
+                                             how='left')
+    dimSalesTerritory.drop(columns=['ModifiedDate', 'CountryRegionCode'], inplace=True)
+    dimSalesTerritory.rename(columns={'Name': 'SalesTerritoryCountry'}, inplace=True)
+    desired_column_order = [
+        'SalesTerritoryAlternateKey', 'SalesTerritoryRegion', 'SalesTerritoryCountry', 'SalesTerritoryGroup'
+    ]
+
+    # Verificar que todas las columnas deseadas están en dimGeography
+    for column in desired_column_order:
+        if column not in dimSalesTerritory.columns:
+            print(f"Warning: Column '{column}' not found in dimSalesTerritory. It will be skipped in reordering.")
+
+    # Reorganizar las columnas
+    dimSalesTerritory = dimSalesTerritory[[col for col in desired_column_order if col in dimSalesTerritory.columns]]
+
+    return dimSalesTerritory
 
 
+def transformDate() -> pd.DataFrame:
+    dimDate = pd.DataFrame({"date": pd.date_range(start='1/1/2005', end='1/1/2009', freq='D').normalize()})
+    dimDate["Date"] = dimDate["date"].dt.strftime('%Y%m%d')
+    # Nueva columna FullDateAlternativeKey
+    dimDate["FullDateAlternativeKey"] = dimDate["date"].dt.strftime('%Y-%m-%d')
 
+    dimDate["DayNumberOfWeek"] = dimDate['date'].dt.dayofweek
+    dimDate["EnglishDayNameOfWeek"] = dimDate['date'].dt.day_name()
+    dimDate["SpanishDayNameOfWeek"] = dimDate['date'].apply(lambda x: format_date(x, format='EEEE', locale='es_ES'))
+    dimDate["FrenchDayNameOfWeek"] = dimDate['date'].apply(lambda x: format_date(x, format='EEEE', locale='fr_FR'))
 
+    dimDate["DayNumberOfMonth"] = dimDate["date"].dt.day
+    dimDate["DayNumberOfYear"] = dimDate["date"].dt.day_of_year
+    dimDate["WeekNumberOfYear"] = dimDate["date"].dt.isocalendar().week
+    dimDate["EnglishMonthName"] = dimDate["date"].dt.month_name()
+    dimDate["SpanishMonthName"] = dimDate['date'].apply(lambda x: format_date(x, format='MMMM', locale='es_ES'))
+    dimDate["FrenchMonthName"] = dimDate['date'].apply(lambda x: format_date(x, format='MMMM', locale='fr_FR'))
+    dimDate["MonthNumberOfYear"] = dimDate["date"].dt.month
+    dimDate["CalendarQuarter"] = dimDate["date"].dt.quarter
+    dimDate["CalendarYear"] = dimDate["date"].dt.year
+    dimDate["CalendarSemester"] = dimDate["date"].dt.month.map(lambda x: 1 if x <= 6 else 2)
+
+    fiscal_start_month = 10  # Supongamos que el año fiscal empieza en octubre
+    dimDate["FiscalQuarter"] = dimDate["date"].apply(lambda x: ((x.month - fiscal_start_month) % 12) // 3 + 1)
+    dimDate["FiscalYear"] = dimDate["date"].apply(lambda x: x.year if x.month >= fiscal_start_month else x.year - 1)
+    dimDate["FiscalSemester"] = dimDate["FiscalQuarter"].apply(lambda x: 1 if x in [1, 2] else 2)
+
+    # Eliminar la columna 'date'
+    dimDate.drop(columns=["date"], inplace=True)
+    return dimDate
 
 
 
@@ -63,24 +193,7 @@ def transformCurrency(dimCurrency: DataFrame) -> DataFrame:
 #     return dim_servicio
 #
 #
-# def transform_fecha() -> DataFrame:
-#     dim_fecha = pd.DataFrame({"date": pd.date_range(start='1/1/2005', end='1/1/2009', freq='D')})
-#     dim_fecha["year"] = dim_fecha["date"].dt.year
-#     dim_fecha["month"] = dim_fecha["date"].dt.month
-#     dim_fecha["day"] = dim_fecha["date"].dt.day
-#     dim_fecha["weekday"] = dim_fecha["date"].dt.weekday
-#     dim_fecha["quarter"] = dim_fecha["date"].dt.quarter
-#     dim_fecha["day_of_year"] = dim_fecha["date"].dt.day_of_year
-#     dim_fecha["day_of_month"] = dim_fecha["date"].dt.days_in_month
-#     dim_fecha["month_str"] = dim_fecha["date"].dt.month_name()  # run locale -a en unix
-#     dim_fecha["day_str"] = dim_fecha["date"].dt.day_name()  # locale = 'es_CO.UTF8'
-#     dim_fecha["date_str"] = dim_fecha["date"].dt.strftime("%d/%m/%Y")
-#     co_holidays = holidays.CO(language="es")
-#     dim_fecha["is_Holiday"] = dim_fecha["date"].apply(lambda x: x in co_holidays)
-#     dim_fecha["holiday"] = dim_fecha["date"].apply(lambda x: co_holidays.get(x))
-#     dim_fecha["weekend"] = dim_fecha["weekday"].apply(lambda x: x > 4)
-#     dim_fecha["saved"] = date.today()
-#     return dim_fecha
+
 #
 # def transform_trans_servicio(args) -> DataFrame:
 #     df_citas, df_urgencias, df_hosp = args

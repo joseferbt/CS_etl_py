@@ -2,10 +2,21 @@ import pandas as pd
 from pandas import DataFrame
 from sqlalchemy.engine import Engine
 
-def load_data_currency(dimCurrency : DataFrame,wh_aw):
+def load_data_currency(dimCurrency : DataFrame, wh_aw):
     dimCurrency.to_sql('dimCurrency', wh_aw, if_exists='append', index_label='currencyKey')
 
+def load_data_geography(dimGeography : DataFrame, wh_aw):
+    dimGeography.to_sql('dimGeography', wh_aw, if_exists='append', index_label='geographyKey')
 
+def load_data_sales_territory(dimSalesTerritory : DataFrame, wh_aw):
+    dimSalesTerritory.to_sql('dimSalesTerritory', wh_aw, if_exists='append', index_label='salesTerritoryKey')
+
+def load_data_date(dimDate:DataFrame, wh_aw:Engine):
+    # Asignar 'date' como índice
+    dimDate.set_index('Date', inplace=True)
+
+    # Guardar el DataFrame en la base de datos
+    dimDate.to_sql('dimDate', wh_aw, if_exists='append', index_label='dateKey')
 
 
 
