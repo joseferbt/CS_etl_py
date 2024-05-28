@@ -54,7 +54,9 @@ tnames = inspector_wh_aw.get_table_names()
 dimCurrency = extract.extractCurrency(db_aw)
 dimSalesTerritory = extract.extractSalesTerritory(db_aw)
 #dimGeography = extract.extractGeography(db_aw)
-dimProduct = extract.extractProduct(db_aw)
+#dimProduct = extract.extractProduct(db_aw)
+dimPromotion = extract.extractPromotion(db_aw)
+
 
 
 # transform
@@ -62,7 +64,9 @@ dimCurrency = transform.transformCurrency(dimCurrency)
 dimDate = transform.transformDate()
 dimSalesTerritory = transform.transformSalesTerritory(dimSalesTerritory)
 #dimGeography = transform.transformGeography(dimGeography)
-dimProduct = transform.transformProduct(dimProduct)
+#dimProduct = transform.transformProduct(dimProduct)
+dimPromotion = transform.transformPromotion(dimPromotion)
+
 
 # #load#
 load.load_data_currency(dimCurrency,wh_aw)

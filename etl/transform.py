@@ -203,23 +203,26 @@ def transformProduct( args) -> pd.DataFrame:
     # Reorganizar las columnas
     dimProduct = dimProduct[[col for col in desired_column_order if col in dimProduct.columns]]
 
+    # print(producto.head())
+    # # print(subcategoriaProducto.head())
+    # print(modeloProducto.head())
+    # print(dimProduct.head())
+    # #
+
+    return dimProduct
+def transformPromotion(args ) -> pd.DataFrame:
+    promotion=args
+    promotion.rename(columns={"SpecialOfferID": "PromotionKey"}, inplace=True)
+    promotion.rename(columns={"Description": "EnglishPromotionName"}, inplace=True)
+    promotion.rename(columns={"Type": "EnglishPromotionType"}, inplace=True)
+    promotion.rename(columns={"Category": "EnglishPromotionCategory"}, inplace=True)
+
+    promotion.drop(columns=['rowguid'], inplace=True)
+    promotion.drop(columns=['ModifiedDate'], inplace=True)
+
+    print(promotion.head())
 
 
-    print(producto.head())
-    # print(subcategoriaProducto.head())
-    print(modeloProducto.head())
-    print(dimProduct.head())
-    #
-
-    # Eliminar columnas no necesarias
-    # dimProduct.drop(columns=['WeightUnitMeasureCode', 'SizeUnitMeasureCode', 'Color', 'SafetyStockLevel',
-    #                          'ReorderPoint', 'SizeRange', 'ProductLine', 'DealerPrice', 'Class', 'Style',
-    #                          'ModelName', 'LargePhoto', 'EnglishDescription', 'FrenchDescription', 'ChineseDescription',
-    #                          'ArabicDescription', 'HebrewDescription', 'ThaiDescription', 'GermanDescription',
-    #                          'JapaneseDescription', 'TurkishDescription', 'StartDate', 'EndDate', 'Status'],
-    #                 inplace=True)
-    #
-    # return dimProduct
 
 #
 # def transform_medico(dim_medico: DataFrame) -> DataFrame:
