@@ -220,7 +220,29 @@ def transformPromotion(args ) -> pd.DataFrame:
     promotion.drop(columns=['rowguid'], inplace=True)
     promotion.drop(columns=['ModifiedDate'], inplace=True)
 
-    print(promotion.head())
+   # print(promotion.head())
+
+def transformSubCategory(args ) -> pd.DataFrame:
+    subcategoriaProducto=args
+
+    subcategoriaProducto.drop(columns=['rowguid','ModifiedDate'], inplace=True)
+    subcategoriaProducto.rename(columns={" ProductSubcategoryID": "ProductSubcategoryKey"}, inplace=True)
+    subcategoriaProducto.rename(columns={" ProductCategoryID": "ProductCategoryKey"}, inplace=True)
+
+    subcategoriaProducto.rename(columns={" Name": "EnglishProductSubcategoryName"}, inplace=True)
+    desired_column_order = [
+        'ProductSubcategoryID', 'Name', 'ProductCategoryID'
+    ]
+
+    # Verificar que todas las columnas deseadas están
+    for column in desired_column_order:
+        if column not in subcategoriaProducto.columns:
+            print(f"Warning: Column '{column}' not found in dimSalesTerritory. It will be skipped in reordering.")
+
+    # Reorganizar las columnas
+    dimProductSubcategory = subcategoriaProducto[[col for col in desired_column_order if col in subcategoriaProducto.columns]]
+
+    print(dimProductSubcategory.head())
 
 
 

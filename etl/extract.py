@@ -88,6 +88,11 @@ def extractPromotion(con: Engine):
     promotion = pd.read_sql_table('SpecialOffer', con, schema='Sales')
     return promotion
 
+def extractSubcategory(con: Engine):
+    subcategoriaProducto = pd.read_sql_table('ProductSubcategory', con, schema='Production')
+
+    return  subcategoriaProducto
+
 #
 # def extract_medico(con: Engine):
 #     dim_medico = pd.read_sql_table('medico', con)

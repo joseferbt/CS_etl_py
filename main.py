@@ -55,7 +55,8 @@ dimCurrency = extract.extractCurrency(db_aw)
 dimSalesTerritory = extract.extractSalesTerritory(db_aw)
 #dimGeography = extract.extractGeography(db_aw)
 #dimProduct = extract.extractProduct(db_aw)
-dimPromotion = extract.extractPromotion(db_aw)
+#dimPromotion = extract.extractPromotion(db_aw)
+dimProducSubcategory = extract.extractSubcategory(db_aw)
 
 
 
@@ -65,7 +66,8 @@ dimDate = transform.transformDate()
 dimSalesTerritory = transform.transformSalesTerritory(dimSalesTerritory)
 #dimGeography = transform.transformGeography(dimGeography)
 #dimProduct = transform.transformProduct(dimProduct)
-dimPromotion = transform.transformPromotion(dimPromotion)
+#dimPromotion = transform.transformPromotion(dimPromotion)
+dimProducSubcategory = transform.transformSubCategory(dimProducSubcategory)
 
 
 # #load#
