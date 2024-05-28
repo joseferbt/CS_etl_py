@@ -44,6 +44,7 @@ tnames = inspector_wh_aw.get_table_names()
 
 
 # extract
+# con es el objeto de conexión SQLAlchemy
 # dimPromotion = extract.extractPromotion(db_aw)
 # dimCustomer = extract.extractCustomer(db_aw)
 # dimProduct = extract.extractProduct(db_aw)
@@ -52,20 +53,23 @@ tnames = inspector_wh_aw.get_table_names()
 # dimReseller = extract.extractReseller(db_aw)
 dimCurrency = extract.extractCurrency(db_aw)
 dimSalesTerritory = extract.extractSalesTerritory(db_aw)
-dimGeography = extract.extractGeography(db_aw)
+#dimGeography = extract.extractGeography(db_aw)
+dimProduct = extract.extractProduct(db_aw)
 
 
 # transform
 dimCurrency = transform.transformCurrency(dimCurrency)
 dimDate = transform.transformDate()
 dimSalesTerritory = transform.transformSalesTerritory(dimSalesTerritory)
-dimGeography = transform.transformGeography(dimGeography)
+#dimGeography = transform.transformGeography(dimGeography)
+dimProduct = transform.transformProduct(dimProduct)
 
 # #load#
 load.load_data_currency(dimCurrency,wh_aw)
 load.load_data_date(dimDate,wh_aw)
 load.load_data_sales_territory(dimSalesTerritory,wh_aw)
-load.load_data_geography(dimGeography, wh_aw)
+#load.load_data_geography(dimGeography, wh_aw)
+#load.load_data_product(dimProduct, wh_aw)
 
 
 # #hecho

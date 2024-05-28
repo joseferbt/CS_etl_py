@@ -56,8 +56,32 @@ def extractSalesTerritory(con: Engine):
     return [salesTerritory, countryRegion]
 
 
+import pandas as pd
+from sqlalchemy.engine import Engine
 
 
+def extractProduct(con: Engine):
+    """
+    Extrae datos relacionados con productos de la base de datos AdventureWorks.
+
+    :param con: Conexión del motor SQLAlchemy a la base de datos AdventureWorks
+    :return: Diccionario que contiene DataFrames de las tablas relacionadas con productos
+    """
+    # Extraer datos del esquema Production
+    producto_query = """
+            SELECT ProductID, Name, ProductNumber, FinishedGoodsFlag, Color, SafetyStockLevel,ReorderPoint,ListPrice, Size, DaysToManufacture, Weight, Style, ProductSubcategoryID, ProductModelID, StandardCost, WeightUnitMeasureCode,DaysToManufacture, ProductLine, Class, SellStartDate, SellEndDate
+            FROM Production.Product
+        """
+    modelo_query = """
+                SELECT ProductModelID, Name
+                FROM Production.ProductModel
+            """
+    producto= pd.read_sql_query(producto_query, con)
+    subcategoriaProducto = pd.read_sql_table('ProductSubcategory', con, schema='Production')
+    modeloProducto = pd.read_sql_query(modelo_query, con)
+
+
+    return [ producto,subcategoriaProducto,modeloProducto ]
 
 
 

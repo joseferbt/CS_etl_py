@@ -18,7 +18,11 @@ def load_data_date(dimDate:DataFrame, wh_aw:Engine):
     # Guardar el DataFrame en la base de datos
     dimDate.to_sql('dimDate', wh_aw, if_exists='append', index_label='dateKey')
 
-
+# def load_data_product(dimProduct: DataFrame, wh_aw: Engine):
+#     dimDate.set_index('dimProduct', inplace=True)
+#     dimProduct.to_sql('dimProduct', wh_aw, if_exists='append', index_label='productKey')
+#
+#
 
 
 
