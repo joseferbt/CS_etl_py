@@ -48,14 +48,23 @@ dim_fecha = transform.transform_fecha()
 dim_servicio = transform.transform_servicio()
 
 #load
-load.load_data_ips(dim_ips,etl_conn)
-load.load_data_fecha(dim_fecha,etl_conn)
-load.load_data_servicio(dim_servicio,etl_conn)
-load.load_data_persona(dim_persona,etl_conn)
-load.load_data_medico(dim_medico,etl_conn)
-load.load_data_trans_servicio(trans_servicio,etl_conn)
+# load.load_data_ips(dim_ips,etl_conn)
+# load.load_data_fecha(dim_fecha,etl_conn)
+# load.load_data_servicio(dim_servicio,etl_conn)
+# load.load_data_persona(dim_persona,etl_conn)
+# load.load_data_medico(dim_medico,etl_conn)
+# load.load_data_trans_servicio(trans_servicio,etl_conn)
+
+load.load(dim_ips,etl_conn,'dim_ips')
+load.load(dim_fecha,etl_conn,'dim_fecha')
+load.load(dim_servicio,etl_conn,'dim_sercicio')
+load.load(dim_persona,etl_conn,'dim_persona')
+load.load(dim_medico,etl_conn,'dim_medico')
+load.load(trans_servicio,etl_conn,'trans_servicio')
+
 
 #hecho
 hecho_atencion = extract.extract_hehco_atencion(etl_conn)
 hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
 load.load_hecho_atencion(hecho_atencion,etl_conn)
+#%%

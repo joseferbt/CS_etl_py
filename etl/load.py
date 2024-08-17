@@ -1,6 +1,7 @@
 import pandas as pd
 from pandas import DataFrame
 from sqlalchemy.engine import Engine
+from sqlalchemy.dialects.postgresql import insert
 
 
 def load_data_ips(dim_ips : DataFrame,etl_conn):
@@ -24,5 +25,8 @@ def load_data_trans_servicio(trans_servicio:DataFrame,etl_conn:Engine):
 def load_hecho_atencion(hecho_atencion:DataFrame,etl_conn:Engine):
     hecho_atencion.to_sql('hecho_atencion', etl_conn, if_exists='append', index_label='key_hecho_atencion')
 
-def load(table:DataFrame,etl_conn:Engine):
-    table.to_sql(f'dim_{table}', etl_conn, if_exists='append', index_label=f'key_{table}')
+def load(table:DataFrame,etl_conn:Engine,tname):
+    # statement = insert(f'{table})
+    # with etl_conn.connect() as conn:
+    #     conn.execute(statement)
+    table.to_sql(f'{tname}', etl_conn, if_exists='replace',index=False)

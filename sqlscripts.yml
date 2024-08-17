@@ -1,7 +1,7 @@
 dim_fecha :
   create table dim_fecha
   (
-  key_dim_fecha bigint not null
+  key_dim_fecha SERIAL not null
   constraint dim_fecha_pk
   primary key,
   date          timestamp,
@@ -25,7 +25,7 @@ dim_fecha :
 dim_ips :
   create table dim_ips
   (
-  key_dim_ips  bigint not null
+  key_dim_ips  SERIAL not null
   constraint dim_ips_pk
   primary key,
   id_ips       text,
@@ -40,7 +40,7 @@ dim_ips :
 dim_medico :
   create table dim_medico
   (
-  key_dim_medico        bigint not null
+  key_dim_medico        SERIAL not null
   primary key,
   cedula                text,
   nombre                text,
@@ -55,7 +55,7 @@ dim_medico :
 dim_persona :
   create table dim_persona
   (
-  key_dim_persona       bigint not null
+  key_dim_persona       SERIAL not null
   primary key,
   tipo_documento        text,
   numero_identificacion text,
@@ -72,7 +72,7 @@ dim_persona :
 dim_servicio :
   create table dim_servicio
   (
-  key_dim_servicio bigint not null
+  key_dim_servicio SERIAL not null
   primary key,
   name             text,
   descripcion      text,
@@ -82,7 +82,7 @@ dim_servicio :
 trans_servicio :
   create table trans_servicio
   (
-  key_trans_servicio   bigint primary key,
+  key_trans_servicio   SERIAL primary key,
   codigo_servicio      text,
   id_usuario           text,
   id_medico            text,
@@ -98,7 +98,7 @@ trans_servicio :
 hecho_atencion :
   create table hecho_atencion
   (
-  key_hecho_atencion     bigint not null
+  key_hecho_atencion     SERIAL 
   primary key,
   key_trans_servicio     bigint  references trans_servicio(key_trans_servicio),
   saved                  date,
