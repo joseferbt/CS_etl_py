@@ -130,3 +130,6 @@ def transform_hecho_atencion(args) -> DataFrame:
                  'fecha_hora_solicitud', 'fecha_hora_atencion', 'codigo_servicio'], inplace=True)
 
     return hecho_atencion
+
+def transform_pay_retiros(args) -> DataFrame:
+    return args

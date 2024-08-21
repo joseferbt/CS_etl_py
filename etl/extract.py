@@ -45,3 +45,7 @@ def extract_hehco_atencion(con: Engine):
 def extract_medicamentos(con: Engine):
     df_medicamentos = pd.read_sql_table('medicamentos', con)
     return df_medicamentos
+def extract_pagos_retiros(con: Engine):
+    df_pagos = pd.read_sql_table('pagos', con)
+    df_retiros = pd.read_sql_table('retiros', con)
+    return df_pagos, df_retiros
