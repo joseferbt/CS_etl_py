@@ -95,6 +95,9 @@ def transform_trans_servicio(args) -> DataFrame:
     trans_servicio["saved"] = date.today()
     trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
+
+def transfrom_medicamentos(args) -> DataFrame:
+    return args
 def transform_hecho_atencion(args) -> DataFrame:
     df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha = args
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')

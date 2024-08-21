@@ -41,3 +41,7 @@ def extract_hehco_atencion(con: Engine):
     dim_ips = pd.read_sql_table('dim_ips', con)
     dim_fecha = pd.read_sql_table('dim_fecha', con)
     return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha]
+
+def extract_medicamentos(con: Engine):
+    df_medicamentos = pd.read_sql_table('medicamentos', con)
+    return df_medicamentos
