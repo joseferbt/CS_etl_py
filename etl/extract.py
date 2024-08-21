@@ -2,12 +2,17 @@ import pandas as pd
 from sqlalchemy.engine import Engine
 
 
-def extract(con):
+def extract(tables : list,con: Engine)-> pd.DataFrame:
     """
     :param con: the connection to the database
-    :return:
+    :param tables: the tables to extract
+    :return: a list of tables in df format
     """
-
+    a = []
+    for i in tables:
+        aux = pd.read_sql_table(i, con)
+        a.append(aux)
+    return a
 
 def extract_ips(con: Engine):
     """
@@ -43,7 +48,7 @@ def extract_hehco_atencion(con: Engine):
     return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha]
 
 def extract_medicamentos(con: Engine):
-    df_medicamentos = pd.read_sql_table('medicamentos', con)
+    df_medicamentos = pd.read_excel('sources/medicamentos.xls')
     return df_medicamentos
 def extract_pagos_retiros(con: Engine):
     df_pagos = pd.read_sql_table('pagos', con)
