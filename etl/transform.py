@@ -133,3 +133,15 @@ def transform_hecho_atencion(args) -> DataFrame:
 
 def transform_pay_retiros(args) -> DataFrame:
     return args
+
+def transform_demographics() -> DataFrame:
+    ageranges = np.linspace(0,100,5)
+    marital_status = ['Divorciado','Union Libre','Casado','Viudo','Soltero']
+    sexo = ['M','F']
+    salario = np.linspace(226000,6226000,5)
+    print(salario[1])
+
+
+#%%
+transform_demographics()
+#%%
