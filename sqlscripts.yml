@@ -95,6 +95,10 @@ trans_servicio :
   fecha_hora_solicitud timestamp,
   saved                date
   );
+dim_demographics :
+  create table dim_demographics
+  (
+  );
 hecho_atencion :
   create table hecho_atencion
   (

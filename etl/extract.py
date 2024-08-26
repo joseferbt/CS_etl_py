@@ -54,3 +54,17 @@ def extract_pagos_retiros(con: Engine):
     df_pagos = pd.read_sql_table('pagos', con)
     df_retiros = pd.read_sql_table('retiros', con)
     return df_pagos, df_retiros
+def extract_drogeria(con: Engine):
+    df_drogeria = pd.read_sql_table('drogeria', con)
+def extract_empresa(con: Engine):
+    df_empresa = pd.read_sql_table('empresa', con)
+def extract_demographics(con: Engine):
+    df_benco= pd.read_sql_table('cotizante_beneficiario', con)
+    df_cotizantes = pd.read_sql_query(
+        '''select cedula as numero_identificacion, tipo_cotizante, estado_civil, sexo, fecha_nacimiento,
+            nivel_escolaridad, estracto, proviene_otra_eps,salario_base,tipo_discapacidad,id_ips from cotizante''', con)
+    df_beneficiarios = pd.read_sql_query(
+        '''select id_beneficiario as numero_identificacion, fecha_nacimiento, sexo, estado_civil,
+         tipo_discapacidad from beneficiario ''', con)
+    df_ips = pd.read_sql_query('select id_ips,municipio,departamento from ips', con )
+    return [df_benco,df_cotizantes,df_beneficiarios,df_ips]
