@@ -135,30 +135,25 @@ def transform_pay_retiros(args) -> DataFrame:
     return args
 
 def transform_demographics(args) -> DataFrame:
-    df_benco, df_cot, df_ben, df_ips = args
+    df_benco, df_cot, df_ben, df_ips, empresa,empcot = args
     #df_ben = pd.merge(df_benco, df_ben, right_on='id_beneficiario',left_on='beneficiario')
     #df_ben.drop(columns=['id_beneficiario'], inplace=True)
     df_ben['tipo_usuario'] = 'beneficiario'
     df_cot.rename(columns={'tipo_cotizante': 'tipo_usuario'}, inplace=True)
 
     df_cot = df_cot.merge(df_ips)
+    df_cot = df_cot.merge(empcot)
+    df_cot = df_cot.merge(empresa)
     df_demo = pd.concat([df_ben, df_cot])
-    df_demo.fillna('NO APLICA', inplace=True)
+    #df_demo.fillna('NO APLICA', inplace=True)
     df_demo.replace(np.nan, 'NO APLICA', inplace=True)
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(df_demo.head(100))
+    df_demo.drop(columns=['nit','id_ips'], inplace=True)
+    return df_demo
 
-    # ageranges = np.linspace(0,100,5)
-    # marital_status = ['Divorciado','Union Libre','Casado','Viudo','Soltero']
-    # sexo = ['M','F']
-    # salario = np.linspace(226000,6226000,5)
-    # print(salario[1])
-    # tipo_cotizante = ['Jubilado', 'Independiente', 'Empleado']
-    # nivel_escolaridad  =
-
-
-
-
-
-
+def transform_enfermedades(args) -> DataFrame:
+    urg, citas, hosp , remi = args
+    df_enfermedades = pd.concat([urg, citas, hosp, remi])
+    df_enfermedades.drop_duplicates(inplace=True)
+    print(df_enfermedades.describe(include='all'))
+    return df_enfermedades
 #%%

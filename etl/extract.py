@@ -39,13 +39,14 @@ def extract_trans_servicio(con: Engine):
     return [df_citas, df_urgencias, df_hosp]
 
 def extract_hehco_atencion(con: Engine):
+    df_demo = pd.read_sql_table('dim_demographics', con)
     df_trans = pd.read_sql_table('trans_servicio', con)
     dim_persona = pd.read_sql_table('dim_persona', con)
     dim_medico = pd.read_sql_table('dim_medico', con)
     dim_servicio = pd.read_sql_table('dim_servicio', con)
     dim_ips = pd.read_sql_table('dim_ips', con)
     dim_fecha = pd.read_sql_table('dim_fecha', con)
-    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha]
+    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_demo]
 
 def extract_medicamentos(con: Engine):
     df_medicamentos = pd.read_excel('sources/medicamentos.xls')
@@ -54,10 +55,7 @@ def extract_pagos_retiros(con: Engine):
     df_pagos = pd.read_sql_table('pagos', con)
     df_retiros = pd.read_sql_table('retiros', con)
     return df_pagos, df_retiros
-def extract_drogeria(con: Engine):
-    df_drogeria = pd.read_sql_table('drogeria', con)
-def extract_empresa(con: Engine):
-    df_empresa = pd.read_sql_table('empresa', con)
+
 def extract_demographics(con: Engine):
     df_benco= pd.read_sql_table('cotizante_beneficiario', con)
     df_cotizantes = pd.read_sql_query(
@@ -67,4 +65,14 @@ def extract_demographics(con: Engine):
         '''select id_beneficiario as numero_identificacion, fecha_nacimiento, sexo, estado_civil,
          tipo_discapacidad from beneficiario ''', con)
     df_ips = pd.read_sql_query('select id_ips,municipio,departamento from ips', con )
-    return [df_benco,df_cotizantes,df_beneficiarios,df_ips]
+    empresa = pd.read_sql_query('select nit , nombre as empresa from empresa', con)
+    empcot = pd.read_sql_query('select empresa as nit, cotizante as numero_identificacion from empresa_cotizante', con)
+    return [df_benco,df_cotizantes,df_beneficiarios,df_ips, empresa, empcot]
+
+def extract_enfermedades(con : Engine):
+    urgencias = pd.read_sql_query('select id_usuario, diagnostico as diag from urgencias', con)
+    hospitalizaciones = pd.read_sql_query('select id_usuario, diagnostico as diag from hospitalizaciones', con)
+    citas_generales = pd.read_sql_query('select id_usuario, diagnostico as diag from citas_generales', con)
+    remisiones = pd.read_sql_query('select id_usuario, diagnostico as diag from remisiones', con)
+
+    return [urgencias, citas_generales, hospitalizaciones, remisiones]

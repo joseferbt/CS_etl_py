@@ -97,7 +97,20 @@ trans_servicio :
   );
 dim_demographics :
   create table dim_demographics
-  (
+  (key_demographics serial primary key,
+  numero_identificacion Int not null,
+  fecha_nacimiento text ,
+  sexo char,
+  estado_civil text,
+  tipo_discapacidad text,
+  tipo_usuario text not null,
+  nivel_escolaridad text,
+  estracto text,
+  proviene_otra_eps text,
+  salario_base text,
+  municipio text,
+  departamento text,
+  empresa text
   );
 hecho_atencion :
   create table hecho_atencion
@@ -117,3 +130,8 @@ hecho_atencion :
   tiempo_espera_horas    integer,
   tiempo_espera_segundos integer
   );
+
+dim_enfermedades :
+  create table dim_enfermedades (
+  
+  )
