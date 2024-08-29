@@ -98,6 +98,7 @@ def transform_trans_servicio(args) -> DataFrame:
 
 def transfrom_medicamentos(args) -> DataFrame:
     return args
+# modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
     df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha = args
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')
@@ -154,6 +155,5 @@ def transform_enfermedades(args) -> DataFrame:
     urg, citas, hosp , remi = args
     df_enfermedades = pd.concat([urg, citas, hosp, remi])
     df_enfermedades.drop_duplicates(inplace=True)
-    print(df_enfermedades.describe(include='all'))
     return df_enfermedades
 #%%

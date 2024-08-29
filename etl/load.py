@@ -23,10 +23,10 @@ def load_data_trans_servicio(trans_servicio:DataFrame,etl_conn:Engine):
     trans_servicio.to_sql('trans_servicio', etl_conn, if_exists='append', index_label='key_trans_servicio')
 
 def load_hecho_atencion(hecho_atencion:DataFrame,etl_conn:Engine):
-    hecho_atencion.to_sql('hecho_atencion', etl_conn, if_exists='append', index_label='key_hecho_atencion')
+    hecho_atencion.to_sql('hecho_atencion', etl_conn, if_exists='append', index=False)
 
 def load(table:DataFrame,etl_conn:Engine,tname):
     # statement = insert(f'{table})
     # with etl_conn.connect() as conn:
     #     conn.execute(statement)
-    table.to_sql(f'{tname}', etl_conn, if_exists='replace',index=False)
+    table.to_sql(f'{tname}', etl_conn, if_exists='append',index=False)

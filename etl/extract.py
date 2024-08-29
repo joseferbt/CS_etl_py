@@ -39,6 +39,7 @@ def extract_trans_servicio(con: Engine):
     return [df_citas, df_urgencias, df_hosp]
 
 def extract_hehco_atencion(con: Engine):
+    df_diag = pd.read_sql_table('dim_diag', con)
     df_demo = pd.read_sql_table('dim_demographics', con)
     df_trans = pd.read_sql_table('trans_servicio', con)
     dim_persona = pd.read_sql_table('dim_persona', con)
@@ -46,7 +47,7 @@ def extract_hehco_atencion(con: Engine):
     dim_servicio = pd.read_sql_table('dim_servicio', con)
     dim_ips = pd.read_sql_table('dim_ips', con)
     dim_fecha = pd.read_sql_table('dim_fecha', con)
-    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_demo]
+    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha]#editar para anadir diag y demo
 
 def extract_medicamentos(con: Engine):
     df_medicamentos = pd.read_excel('sources/medicamentos.xls')
@@ -70,9 +71,9 @@ def extract_demographics(con: Engine):
     return [df_benco,df_cotizantes,df_beneficiarios,df_ips, empresa, empcot]
 
 def extract_enfermedades(con : Engine):
-    urgencias = pd.read_sql_query('select id_usuario, diagnostico as diag from urgencias', con)
-    hospitalizaciones = pd.read_sql_query('select id_usuario, diagnostico as diag from hospitalizaciones', con)
-    citas_generales = pd.read_sql_query('select id_usuario, diagnostico as diag from citas_generales', con)
-    remisiones = pd.read_sql_query('select id_usuario, diagnostico as diag from remisiones', con)
+    urgencias = pd.read_sql_query('select id_usuario, diagnostico,fecha_atencion as diag from urgencias', con)
+    hospitalizaciones = pd.read_sql_query('select id_usuario, diagnostico, fecha_atencion as diag from hospitalizaciones', con)
+    citas_generales = pd.read_sql_query('select id_usuario, diagnostico,fecha_atencion as diag from citas_generales', con)
+    remisiones = pd.read_sql_query('select id_usuario, diagnostico, fecha_atencion as diag from remisiones', con)
 
     return [urgencias, citas_generales, hospitalizaciones, remisiones]

@@ -133,5 +133,8 @@ hecho_atencion :
 
 dim_enfermedades :
   create table dim_enfermedades (
-  
-  )
+    key_dim_enfermedades serial,
+    id_usuario int,
+    diag text,
+    fecha date
+  );
