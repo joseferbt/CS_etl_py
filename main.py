@@ -1,8 +1,31 @@
 import pandas as pd
-from sqlalchemy import create_engine, inspect
+import datetime
+from datetime import date
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import Engine
 import yaml
 from etl import extract, transform, load
 import psycopg2
+
+
+def new_data(conn: Engine) -> bool:
+    query = text('select saved from hecho_atencion order by saved desc limit 1;')
+    query
+    with conn.connect() as con:
+        try:
+            rs = con.execute(query)
+            print('jere')
+            lastdate = rs.fetchone()[0]
+            print('lastdate', lastdate,date.today())
+            print(lastdate < datetime.date.today())
+            if lastdate < datetime.date.today():
+                return True
+            return False
+        except Exception as e:
+            print('error aqui')
+            print(e)
+            return False
+
 
 with open('config.yml', 'r') as f:
     config = yaml.safe_load(f)
@@ -22,51 +45,52 @@ inspector = inspect(etl_conn)
 tnames = inspector.get_table_names()
 
 if not tnames:
-    conn = psycopg2.connect(dbname=config_etl['dbname'], user=config_etl['user'],password=config_etl['password'],host=config_etl['host'],port=config_etl['port'])
+    conn = psycopg2.connect(dbname=config_etl['dbname'], user=config_etl['user'], password=config_etl['password'],
+                            host=config_etl['host'], port=config_etl['port'])
     cur = conn.cursor()
     with open('sqlscripts.yml', 'r') as f:
         sql = yaml.safe_load(f)
-        for key,val in sql.items():
+        for key, val in sql.items():
             cur.execute(val)
             conn.commit()
+if new_data(etl_conn):
+    # extract
+    dim_ips = extract.extract_ips(co_sa)
+    dim_persona = extract.extract_persona(co_sa)
+    dim_medico = extract.extract_medico(co_sa)
+    trans_servicio = extract.extract_trans_servicio(co_sa)
+    dim_demo = extract.extract_demographics(co_sa)
+    dim_diag = extract.extract_enfermedades(co_sa)
 
-# extract
-dim_ips = extract.extract_ips(co_sa)
-dim_persona = extract.extract_persona(co_sa)
-dim_medico = extract.extract_medico(co_sa)
-trans_servicio = extract.extract_trans_servicio(co_sa)
-dim_demo = extract.extract_demographics(co_sa)
-dim_diag = extract.extract_enfermedades(co_sa)
+    # transform
+    dim_ips = transform.transform_ips(dim_ips)
+    dim_persona = transform.transform_persona(dim_persona)
+    dim_medico = transform.transform_medico(dim_medico)
+    trans_servicio = transform.transform_trans_servicio(trans_servicio)
+    dim_fecha = transform.transform_fecha()
+    dim_servicio = transform.transform_servicio()
+    dim_demo = transform.transform_demographics(dim_demo)
+    dim_diag = transform.transform_enfermedades(dim_diag)
+    #load
+    # load.load_data_ips(dim_ips,etl_conn)
+    # load.load_data_fecha(dim_fecha,etl_conn)
+    # load.load_data_servicio(dim_servicio,etl_conn)
+    # load.load_data_persona(dim_persona,etl_conn)
+    # load.load_data_medico(dim_medico,etl_conn)
+    # load.load_data_trans_servicio(trans_servicio,etl_conn)
 
-# transform
-dim_ips = transform.transform_ips(dim_ips)
-dim_persona = transform.transform_persona(dim_persona)
-dim_medico = transform.transform_medico(dim_medico)
-trans_servicio = transform.transform_trans_servicio(trans_servicio)
-dim_fecha = transform.transform_fecha()
-dim_servicio = transform.transform_servicio()
-dim_demo = transform.transform_demographics(dim_demo)
-dim_diag = transform.transform_enfermedades(dim_diag)
-#load
-# load.load_data_ips(dim_ips,etl_conn)
-# load.load_data_fecha(dim_fecha,etl_conn)
-# load.load_data_servicio(dim_servicio,etl_conn)
-# load.load_data_persona(dim_persona,etl_conn)
-# load.load_data_medico(dim_medico,etl_conn)
-# load.load_data_trans_servicio(trans_servicio,etl_conn)
-
-load.load(dim_ips,etl_conn,'dim_ips')
-load.load(dim_fecha,etl_conn,'dim_fecha')
-load.load(dim_servicio,etl_conn,'dim_sercicio')
-load.load(dim_persona,etl_conn,'dim_persona')
-load.load(dim_medico,etl_conn,'dim_medico')
-load.load(trans_servicio,etl_conn,'trans_servicio')
-load.load(dim_diag,etl_conn,'dim_diag')
-load.load(dim_demo,etl_conn,'dim_demographics')
+    load.load(dim_ips, etl_conn, 'dim_ips')
+    load.load(dim_fecha, etl_conn, 'dim_fecha')
+    load.load(dim_servicio, etl_conn, 'dim_servicio')
+    load.load(dim_persona, etl_conn, 'dim_persona')
+    load.load(dim_medico, etl_conn, 'dim_medico')
+    load.load(trans_servicio, etl_conn, 'trans_servicio')
+    load.load(dim_diag, etl_conn, 'dim_diag')
+    load.load(dim_demo, etl_conn, 'dim_demographics')
 
 
-#hecho
-hecho_atencion = extract.extract_hehco_atencion(etl_conn)
-hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
-load.load_hecho_atencion(hecho_atencion,etl_conn)
+    #hecho
+    hecho_atencion = extract.extract_hehco_atencion(etl_conn)
+    hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
+    load.load_hecho_atencion(hecho_atencion, etl_conn)
 #%%

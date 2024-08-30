@@ -98,7 +98,7 @@ trans_servicio :
 dim_demographics :
   create table dim_demographics
   (key_demographics serial primary key,
-  numero_identificacion Int not null,
+  numero_identificacion text not null,
   fecha_nacimiento text ,
   sexo char,
   estado_civil text,
@@ -131,8 +131,8 @@ hecho_atencion :
   tiempo_espera_segundos integer
   );
 
-dim_enfermedades :
-  create table dim_enfermedades (
+dim_diag :
+  create table dim_diag (
     key_dim_enfermedades serial,
     id_usuario int,
     diag text,
