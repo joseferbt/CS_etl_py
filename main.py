@@ -9,21 +9,21 @@ import psycopg2
 
 
 def new_data(conn: Engine) -> bool:
-    query = text('select saved from hecho_atencion order by saved desc limit 1;')
-    query
+    queryo = text('select saved from hecho_atencion order by saved desc limit 1;')
+    queryt = text(''' select date from dim_fecha where key_dim_fecha =
+    (select key_fecha_atencion from hecho_atencion order by key_fecha_atencion desc limit 1) ;''')
     with conn.connect() as con:
         try:
-            rs = con.execute(query)
-            print('jere')
-            lastdate = rs.fetchone()[0]
-            print('lastdate', lastdate,date.today())
-            print(lastdate < datetime.date.today())
-            if lastdate < datetime.date.today():
+            rs1 = con.execute(queryo)
+            rs2 = con.execute(queryt)
+            lastupdate = rs1.fetchone()[0]
+            lastdate = rs2.fetchone()[0]
+            if lastdate.date() > lastupdate:
                 return True
+            print(f'''No hay datos nuevos desde la ultima fecha de carga {lastupdate}''' )
             return False
         except Exception as e:
-            print('error aqui')
-            print(e)
+            print('[*]',e)
             return False
 
 
@@ -90,7 +90,9 @@ if new_data(etl_conn):
 
 
     #hecho
-    hecho_atencion = extract.extract_hehco_atencion(etl_conn)
+    hecho_atencion = extract.extract_hecho_atencion(etl_conn)
     hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
     load.load_hecho_atencion(hecho_atencion, etl_conn)
+else :
+    print('done')
 #%%

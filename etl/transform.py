@@ -100,7 +100,7 @@ def transfrom_medicamentos(args) -> DataFrame:
     return args
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
-    df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha = args
+    df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha,dim_diag,dim_demo = args
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(
@@ -125,6 +125,9 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion['tiempo_espera_horas'] = hecho_atencion['tiempo_espera'].dt.seconds // (60 * 60)
     hecho_atencion['tiempo_espera_segundos'] = hecho_atencion['tiempo_espera'].dt.seconds
     hecho_atencion["saved"] = date.today()
+    hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
+    hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'id_usuario']])
+
 
     hecho_atencion.drop(
         columns=['tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'hora_solicitud', 'hora_atencion',
