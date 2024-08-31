@@ -50,7 +50,7 @@ if not tnames:
     cur = conn.cursor()
     with open('sqlscripts.yml', 'r') as f:
         sql = yaml.safe_load(f)
-        for key, val in sql.items():
+        for key,val in sql.items():
             cur.execute(val)
             conn.commit()
 if new_data(etl_conn):
