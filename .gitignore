@@ -3,3 +3,4 @@
 config.yml
 *.db
 sources*
+/test.py

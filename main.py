@@ -14,10 +14,14 @@ def new_data(conn: Engine) -> bool:
     (select key_fecha_atencion from hecho_atencion order by key_fecha_atencion desc limit 1) ;''')
     with conn.connect() as con:
         try:
+            print('no se que pasa')
             rs1 = con.execute(queryo)
             rs2 = con.execute(queryt)
-            lastupdate = rs1.fetchone()[0]
-            lastdate = rs2.fetchone()[0]
+            lastupdate = rs1.fetchone()
+            lastdate = rs2.fetchone()
+            if lastupdate==None or lastdate==None:
+                print('entro')
+                return True
             if lastdate.date() > lastupdate:
                 return True
             print(f'''No hay datos nuevos desde la ultima fecha de carga {lastupdate}''' )
@@ -95,4 +99,6 @@ if new_data(etl_conn):
     load.load_hecho_atencion(hecho_atencion, etl_conn)
 else :
     print('done')
+#%%
+
 #%%

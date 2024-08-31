@@ -111,6 +111,8 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
+    hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
+    hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
     hecho_atencion.drop(columns=['cedula'], inplace=True)
@@ -125,8 +127,7 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion['tiempo_espera_horas'] = hecho_atencion['tiempo_espera'].dt.seconds // (60 * 60)
     hecho_atencion['tiempo_espera_segundos'] = hecho_atencion['tiempo_espera'].dt.seconds
     hecho_atencion["saved"] = date.today()
-    hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
-    hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'id_usuario']])
+
 
 
     hecho_atencion.drop(
@@ -158,5 +159,8 @@ def transform_enfermedades(args) -> DataFrame:
     urg, citas, hosp , remi = args
     df_enfermedades = pd.concat([urg, citas, hosp, remi])
     df_enfermedades.drop_duplicates(inplace=True)
+    print(df_enfermedades.columns)
+    df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_medicamentos'}, inplace=True)
+    print(df_enfermedades.columns)
     return df_enfermedades
 #%%
