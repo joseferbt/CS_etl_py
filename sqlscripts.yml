@@ -112,6 +112,13 @@ dim_demographics :
   departamento text,
   empresa text
   );
+dim_diag :
+  create table dim_diag (
+  key_dim_diag serial,
+  numero_identificacion text,
+  diagnostico text,
+  fecha_medicamentos date
+  );
 hecho_atencion :
   create table hecho_atencion
   (
@@ -119,6 +126,8 @@ hecho_atencion :
   primary key,
   key_trans_servicio     bigint  references trans_servicio(key_trans_servicio),
   saved                  date,
+  key_dim_diag int REFERENCES dim_diag(key_dim_diag),
+  key_dim_demo int REFERENCES dim_demographics(key_dim_demo),
   key_fecha_atencion     bigint  REFERENCES public.dim_fecha(key_dim_fecha),
   key_fecha_solicitud    bigint  REFERENCES public.dim_fecha(key_dim_fecha),
   key_dim_persona        bigint  REFERENCES public.dim_persona(key_dim_persona),
@@ -131,10 +140,4 @@ hecho_atencion :
   tiempo_espera_segundos integer
   );
 
-dim_diag :
-  create table dim_diag (
-    key_dim_enfermedades serial,
-    id_usuario text,
-    diagnostico text,
-    fecha_medicamentos date
-  );
+

@@ -109,9 +109,11 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion = pd.merge(hecho_atencion, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_solicitud',
                               right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
+
     hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
+    print(dim_diag.columns)
     hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
