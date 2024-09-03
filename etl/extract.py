@@ -49,9 +49,15 @@ def extract_hecho_atencion(con: Engine):
     dim_fecha = pd.read_sql_table('dim_fecha', con)
     return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_diag,df_demo]#editar para anadir diag y demo
 
-def extract_medicamentos(con: Engine):
+def extract_medicamentos():
     df_medicamentos = pd.read_excel('sources/medicamentos.xls')
+    df_medicamentos.rename(columns={'Código':'codigo', 'Nombre Genérico':'nombre','Forma Farmacéutica':'forma',
+                                    'Laboratorio y Registro':'laboratorio', 'Tipo Medicamento':'tipo'}, inplace=True)
     return df_medicamentos
+def extract_receta(con:Engine):
+    df_receta = pd.read_sql_query('''select codigo_formula as codigo, id_medico, id_usuario, fecha, 
+    medicamentos_recetados as medicamentos from formulas_medicas''',con)
+    return df_receta
 def extract_pagos_retiros(con: Engine):
     df_pagos = pd.read_sql_table('pagos', con)
     df_retiros = pd.read_sql_table('retiros', con)

@@ -96,7 +96,17 @@ def transform_trans_servicio(args) -> DataFrame:
     trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
 
-def transfrom_medicamentos(args) -> DataFrame:
+def transfrom_receta(args) -> DataFrame:
+    df_med, df_form = args
+    print(df_med.info(), df_form.info())
+    df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
+    df_form_expl = df_form.explode('medicamentos')
+    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
+    result = df_mer.groupby(df_form_expl.index).agg({
+        'nombre' : list    }).reset_index(drop=True)
+    print(result.head())
+
+
     return args
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
@@ -162,7 +172,7 @@ def transform_enfermedades(args) -> DataFrame:
     df_enfermedades = pd.concat([urg, citas, hosp, remi])
     df_enfermedades.drop_duplicates(inplace=True)
     print(df_enfermedades.columns)
-    df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_medicamentos'}, inplace=True)
+    df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_diagnostico'}, inplace=True)
     print(df_enfermedades.columns)
     return df_enfermedades
 #%%

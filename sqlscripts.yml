@@ -114,10 +114,30 @@ dim_demographics :
   );
 dim_diag :
   create table dim_diag (
-  key_dim_diag serial,
+  key_dim_diag serial primary key,
   numero_identificacion text,
   diagnostico text,
-  fecha_medicamentos date
+  fecha_diagnostico date
+  );
+dim_medicamentos:
+  create table dim_medicamentos(
+  key_dim_medicamentos serial primary key,
+  codigo int,
+  nombre text,
+  froma text,
+  presentacion text,
+  laboratorio text,
+  precio double,
+  tipo text  
+  );
+dim_receta:
+  create table dim_receta(
+  key_dim_receta serial primary key,
+  codigo int,
+  id_medico text,
+  id_usuario text
+  fecha date
+  medicamentos text
   );
 hecho_atencion :
   create table hecho_atencion
@@ -125,7 +145,6 @@ hecho_atencion :
   key_hecho_atencion     SERIAL 
   primary key,
   key_trans_servicio     bigint  references trans_servicio(key_trans_servicio),
-  saved                  date,
   key_dim_diag int REFERENCES dim_diag(key_dim_diag),
   key_dim_demo int REFERENCES dim_demographics(key_dim_demo),
   key_fecha_atencion     bigint  REFERENCES public.dim_fecha(key_dim_fecha),
@@ -137,7 +156,8 @@ hecho_atencion :
   tiempo_espera_dias     bigint,
   tiempo_espera_minutos  integer,
   tiempo_espera_horas    integer,
-  tiempo_espera_segundos integer
+  tiempo_espera_segundos integer,
+  saved                  date
   );
 
 
