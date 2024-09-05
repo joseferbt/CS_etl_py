@@ -98,25 +98,17 @@ def transform_trans_servicio(args) -> DataFrame:
 
 def transfrom_receta(args:list[DataFrame]) -> DataFrame:
     df_med, df_form = args
-    #print(DataFrame.describe(df_med,include='all'),'\n',df_form.describe(include='all'))
-    print(df_form['medicamentos'].head())
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
-    print(df_form['medicamentos'].head())
-    print(df_form['medicamentos'].explode())
     df_form_expl = df_form.explode('medicamentos')
-    print('after xplode')
-    print('[aqui deberia estar individual ',type(df_form_expl))
-    print(df_form_expl.head())
     df_med = df_med.astype('string')
-    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
-    df_mer['receta'] = df_mer.groupby(df_form_expl.index).agg({
-        'nombre' : list    }).reset_index(drop=True)
-    print('[[{}]]')
-    df_mer.drop(columns=['nombre','codigo'],inplace=True)
-    df_mer.rename(columns={'codigo_x': 'codigo_formula'},inplace=True)
+    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo',indicator=True)
+    df_fix = df_mer.groupby(['codigo_formula','id_medico','id_usuario','fecha']).agg({ 'nombre' : list    }).reset_index()
+    print(df_fix.columns)
+    #df_mer.drop(columns=['codigo'],inplace=True)
+    #df_mer.rename(columns={'codigo_x': 'codigo_formula'},inplace=True)
     #df_mer.dropna(inplace=True)
     #DataFrame.dropna
-    return df_mer
+    return df_fix
 
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
