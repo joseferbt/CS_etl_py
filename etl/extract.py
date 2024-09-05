@@ -55,7 +55,7 @@ def extract_medicamentos():
                                     'Laboratorio y Registro':'laboratorio', 'Tipo Medicamento':'tipo'}, inplace=True)
     return df_medicamentos
 def extract_receta(con:Engine):
-    df_receta = pd.read_sql_query('''select codigo_formula as codigo, id_medico, id_usuario, fecha, 
+    df_receta = pd.read_sql_query('''select codigo_formula , id_medico, id_usuario, fecha, 
     medicamentos_recetados as medicamentos from formulas_medicas''',con)
     return df_receta
 def extract_pagos_retiros(con: Engine):

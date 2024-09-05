@@ -96,18 +96,28 @@ def transform_trans_servicio(args) -> DataFrame:
     trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
 
-def transfrom_receta(args) -> DataFrame:
+def transfrom_receta(args:list[DataFrame]) -> DataFrame:
     df_med, df_form = args
-    print(df_med.info(), df_form.info())
+    #print(DataFrame.describe(df_med,include='all'),'\n',df_form.describe(include='all'))
+    print(df_form['medicamentos'].head())
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
+    print(df_form['medicamentos'].head())
+    print(df_form['medicamentos'].explode())
     df_form_expl = df_form.explode('medicamentos')
+    print('after xplode')
+    print('[aqui deberia estar individual ',type(df_form_expl))
+    print(df_form_expl.head())
+    df_med = df_med.astype('string')
     df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
-    result = df_mer.groupby(df_form_expl.index).agg({
+    df_mer['receta'] = df_mer.groupby(df_form_expl.index).agg({
         'nombre' : list    }).reset_index(drop=True)
-    print(result.head())
+    print('[[{}]]')
+    df_mer.drop(columns=['nombre','codigo'],inplace=True)
+    df_mer.rename(columns={'codigo_x': 'codigo_formula'},inplace=True)
+    #df_mer.dropna(inplace=True)
+    #DataFrame.dropna
+    return df_mer
 
-
-    return args
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
     df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha,dim_diag,dim_demo = args
@@ -171,8 +181,6 @@ def transform_enfermedades(args) -> DataFrame:
     urg, citas, hosp , remi = args
     df_enfermedades = pd.concat([urg, citas, hosp, remi])
     df_enfermedades.drop_duplicates(inplace=True)
-    print(df_enfermedades.columns)
     df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_diagnostico'}, inplace=True)
-    print(df_enfermedades.columns)
     return df_enfermedades
 #%%
