@@ -32,7 +32,8 @@ def load_data_trans_servicio(trans_servicio: DataFrame, etl_conn: Engine):
 
 def load_hecho_atencion(hecho_atencion: DataFrame, etl_conn: Engine):
     hecho_atencion.to_sql('hecho_atencion', etl_conn, if_exists='append', index=False)
-
+def load_hecho_entrega(hecho_entrega: DataFrame, etl_conn: Engine):
+    hecho_entrega.to_sql('hecho_entrega', etl_conn, if_exists='append', index=False)
 
 def load(table: DataFrame, etl_conn: Engine, tname, replace: bool = False):
     # statement = insert(f'{table})

@@ -3,34 +3,40 @@ import datetime
 from datetime import date
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori
 import yaml
 from etl import extract, transform, load
 import psycopg2
 
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 100)
 
-def new_data(conn: Engine) -> bool:
+
+def new_data(conne: Engine) -> bool:
     queryo = text('select saved from hecho_atencion order by saved desc limit 1;')
     queryt = text(''' select date from dim_fecha where key_dim_fecha =
     (select key_fecha_atencion from hecho_atencion order by key_fecha_atencion desc limit 1) ;''')
-    with conn.connect() as con:
+    with conne.connect() as con:
         try:
             print('no se que pasa')
             rs1 = con.execute(queryo)
             rs2 = con.execute(queryt)
             lastupdate = rs1.fetchone()
             lastdate = rs2.fetchone()
-            if lastupdate==None or lastdate==None:
+            if lastupdate is None or lastdate is None:
                 print('entro')
                 return True
             if lastdate.date() > lastupdate:
                 return True
-            print(f'''No hay datos nuevos desde la ultima fecha de carga {lastupdate}''' )
+            print(f'''No hay datos nuevos desde la ultima fecha de carga {lastupdate}''')
             return False
         except Exception as e:
-            print('[*]',e)
+            print('[*]', e)
             return False
 
-def push_dimensions(co_sa,etl_conn):
+
+def push_dimensions(co_sa, etl_conn):
     dim_ips = extract.extract_ips(co_sa)
     dim_persona = extract.extract_persona(co_sa)
     dim_medico = extract.extract_medico(co_sa)
@@ -57,6 +63,7 @@ def push_dimensions(co_sa,etl_conn):
     load.load(dim_diag, etl_conn, 'dim_diag')
     load.load(dim_demo, etl_conn, 'dim_demographics')
 
+
 with open('config.yml', 'r') as f:
     config = yaml.safe_load(f)
     config_co = config['CO_SA']
@@ -79,12 +86,12 @@ if not tnames:
     cur = conn.cursor()
     with open('sqlscripts.yml', 'r') as f:
         sql = yaml.safe_load(f)
-        for key,val in sql.items():
+        for key, val in sql.items():
             cur.execute(val)
             conn.commit()
-if new_data(etl_conn) :
+if new_data(etl_conn):
 
-    if(config['LOAD_DIMENSIONS']):
+    if config['LOAD_DIMENSIONS']:
         dim_ips = extract.extract_ips(co_sa)
         dim_persona = extract.extract_persona(co_sa)
         dim_medico = extract.extract_medico(co_sa)
@@ -103,21 +110,25 @@ if new_data(etl_conn) :
         dim_diag = transform.transform_enfermedades(dim_diag)
 
         load.load(dim_ips, etl_conn, 'dim_ips', True)
-        load.load(dim_fecha, etl_conn, 'dim_fecha',True)
-        load.load(dim_servicio, etl_conn, 'dim_servicio',True)
-        load.load(dim_persona, etl_conn, 'dim_persona',True)
-        load.load(dim_medico, etl_conn, 'dim_medico',True)
-        load.load(trans_servicio, etl_conn, 'trans_servicio',True)
-        load.load(dim_diag, etl_conn, 'dim_diag',True)
-        load.load(dim_demo, etl_conn, 'dim_demographics',True)
+        load.load(dim_fecha, etl_conn, 'dim_fecha', True)
+        load.load(dim_servicio, etl_conn, 'dim_servicio', True)
+        load.load(dim_persona, etl_conn, 'dim_persona', True)
+        load.load(dim_medico, etl_conn, 'dim_medico', True)
+        load.load(trans_servicio, etl_conn, 'trans_servicio', True)
+        load.load(dim_diag, etl_conn, 'dim_diag', True)
+        load.load(dim_demo, etl_conn, 'dim_demographics', True)
 
     #hecho Atencion
     hecho_atencion = extract.extract_hecho_atencion(etl_conn)
     hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
     load.load_hecho_atencion(hecho_atencion, etl_conn)
     # Hecho Entrega medicamentos
+    hecho_entrega = transform.transfrom_receta([extract.extract_medicamentos(),extract.extract_receta(co_sa)])
+    load.load_hecho_entrega(hecho_entrega, etl_conn)
+    # medicamentos que mas se recetan juntos
+
     print('success all facts loaded')
-else :
+else:
     print('done not new data')
 #%%
 

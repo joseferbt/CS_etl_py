@@ -127,7 +127,7 @@ dim_medicamentos:
   froma text,
   presentacion text,
   laboratorio text,
-  precio double,
+  precio real,
   tipo text  
   );
 dim_receta:
@@ -135,8 +135,8 @@ dim_receta:
   key_dim_receta serial primary key,
   codigo int,
   id_medico text,
-  id_usuario text
-  fecha date
+  id_usuario text,
+  fecha date,
   medicamentos text
   );
 hecho_atencion :

@@ -3,6 +3,8 @@ from datetime import timedelta, date
 import holidays
 import numpy as np
 import pandas as pd
+from mlxtend.frequent_patterns import apriori
+from mlxtend.preprocessing import TransactionEncoder
 from pandas import DataFrame
 
 
@@ -103,11 +105,16 @@ def transfrom_receta(args:list[DataFrame]) -> DataFrame:
     df_med = df_med.astype('string')
     df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo',indicator=True)
     df_fix = df_mer.groupby(['codigo_formula','id_medico','id_usuario','fecha']).agg({ 'nombre' : list    }).reset_index()
-    print(df_fix.columns)
-    #df_mer.drop(columns=['codigo'],inplace=True)
-    #df_mer.rename(columns={'codigo_x': 'codigo_formula'},inplace=True)
-    #df_mer.dropna(inplace=True)
-    #DataFrame.dropna
+    df_fix.rename(columns={'nombre':'medicamentos'}, inplace=True)
+    masrecetados = df_fix['medicamentos']
+    te = TransactionEncoder()
+    te_ary = te.fit(masrecetados).transform(masrecetados)
+    df = pd.DataFrame(te_ary, columns=te.columns_)
+    frequent_itemsets = apriori(df, min_support=60,use_colnames=True)
+    frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
+    frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
+                       (frequent_itemsets['support'] >= 0.8) ]
+    print(frequent_itemsets)
     return df_fix
 
 # modificar para anadir demografia y enfermedades(diagnostico)
@@ -125,7 +132,6 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
-    print(dim_diag.columns)
     hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'numero_identificacion']])
     hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
