@@ -1,5 +1,6 @@
 import datetime
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
+from typing import Tuple, Any
 
 import holidays
 import numpy as np
@@ -99,14 +100,22 @@ def transform_trans_servicio(args) -> DataFrame:
     trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
 
-def transfrom_receta(args:list[DataFrame]) -> DataFrame:
-    df_med, df_form = args
+def transfrom_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
+    df_med, df_form, df_per, df_doc, df_fecha = args
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
     df_form_expl = df_form.explode('medicamentos')
     df_med = df_med.astype('string')
-    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo',indicator=True)
+    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
     df_fix = df_mer.groupby(['codigo_formula','id_medico','id_usuario','fecha']).agg({ 'nombre' : list    }).reset_index()
     df_fix.rename(columns={'nombre':'medicamentos'}, inplace=True)
+    df_fix = df_fix.merge(df_per[['numero_identificacion','key_dim_persona']]
+                 ,right_on='numero_identificacion',left_on='id_usuario')
+    df_fix = df_fix.merge(df_doc[['cedula','key_dim_medico']],
+                 left_on='id_medico',right_on='cedula')
+    df_fecha['date'] = df_fecha['date'].dt.date
+
+    df_fix = df_fix.merge(df_fecha[['key_dim_fecha','date']],left_on='fecha',right_on='date')
+    df_fix.drop(columns = ['cedula','numero_identificacion','id_usuario','id_medico','codigo_formula','fecha','date'],inplace=True)
     masrecetados = df_fix['medicamentos'].to_list()
     te = TransactionEncoder()
     te_ary = te.fit(masrecetados).transform(masrecetados)
@@ -115,7 +124,6 @@ def transfrom_receta(args:list[DataFrame]) -> DataFrame:
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
     frequent_itemsets = frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
                        (frequent_itemsets['support'] >= 0.05) ]
-    print(frequent_itemsets.head())
     return df_fix, frequent_itemsets
 
 # modificar para anadir demografia y enfermedades(diagnostico)
@@ -160,7 +168,7 @@ def transform_hecho_atencion(args) -> DataFrame:
 def transform_pay_retiros(args) -> DataFrame:
     return args
 
-def transform_demographics(args) -> DataFrame:
+def transform_demografia(args) -> DataFrame:
     df_benco, df_cot, df_ben, df_ips, empresa,empcot = args
     #df_ben = pd.merge(df_benco, df_ben, right_on='id_beneficiario',left_on='beneficiario')
     #df_ben.drop(columns=['id_beneficiario'], inplace=True)
@@ -172,6 +180,7 @@ def transform_demographics(args) -> DataFrame:
     df_cot = df_cot.merge(empresa)
     df_demo = pd.concat([df_ben, df_cot])
     #df_demo.fillna('NO APLICA', inplace=True)
+    df_demo['edad'] = df_demo['fecha_nacimiento'].apply(lambda x: (date.today() - x).days // 365)
     df_demo.replace(np.nan, 'NO APLICA', inplace=True)
     df_demo.drop(columns=['nit','id_ips'], inplace=True)
     return df_demo
@@ -183,4 +192,29 @@ def transform_enfermedades(args) -> DataFrame:
     df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_diagnostico'}, inplace=True)
     return df_enfermedades
 #%%
+def lattestpayment(data:DataFrame,fecha,months=1):
+    months = timedelta(days=30*months)
+    data['retirado'] = data['fecha_pago'].apply(lambda x:  datetime.strptime(fecha,'%Y-%m-%d').date() - x[-1] > months )
+    data['fecha_retiro']= data['fecha_pago'].apply(lambda x: x[-1])
+    return data[['retirado','fecha_retiro','id_usuario']]
 
+def transform_hecho_retiros(args,months,lastdate='2008-11-15',) -> DataFrame:
+    pagos, retiros,dim_per,dim_demo,dim_fecha = args
+    mask = pagos['id_usuario'].isin(retiros['id_usuario'])
+    pagos =  pagos[~mask]
+    testretiros = pagos.groupby('id_usuario').agg({'fecha_pago':list}).reset_index()
+    pagos = lattestpayment(testretiros,lastdate,months)
+    pagos['cambio_a_eps'] = 'NO'
+    retiros.replace({'':'NO'},inplace=True)
+    retiros['retirado'] = True
+    hecho_retiros = pd.concat([pagos[pagos['retirado']==True],
+                               retiros[['fecha_retiro','id_usuario','cambio_a_eps','retirado']]],ignore_index=True)
+    hecho_retiros = hecho_retiros.merge(dim_per[['key_dim_persona','numero_identificacion']],left_on='id_usuario',right_on='numero_identificacion')
+    hecho_retiros = hecho_retiros.merge(dim_demo[['key_dim_demo','numero_identificacion']],left_on='id_usuario',right_on='numero_identificacion')
+
+    dim_fecha['date'] = dim_fecha['date'].dt.date
+
+    hecho_retiros = hecho_retiros.merge(dim_fecha[['key_dim_fecha','date']],left_on='fecha_retiro',right_on='date')
+    hecho_retiros.drop(columns=['numero_identificacion_y','numero_identificacion_x','date','fecha_retiro','id_usuario'],inplace=True)
+
+    return hecho_retiros

@@ -40,7 +40,7 @@ def extract_trans_servicio(con: Engine):
 
 def extract_hecho_atencion(con: Engine):
     df_diag = pd.read_sql_table('dim_diag', con)
-    df_demo = pd.read_sql_table('dim_demographics', con)
+    df_demo = pd.read_sql_table('dim_demografia', con)
     df_trans = pd.read_sql_table('trans_servicio', con)
     dim_persona = pd.read_sql_table('dim_persona', con)
     dim_medico = pd.read_sql_table('dim_medico', con)
@@ -58,12 +58,7 @@ def extract_receta(con:Engine):
     df_receta = pd.read_sql_query('''select codigo_formula , id_medico, id_usuario, fecha, 
     medicamentos_recetados as medicamentos from formulas_medicas''',con)
     return df_receta
-def extract_pagos_retiros(con: Engine):
-    df_pagos = pd.read_sql_table('pagos', con)
-    df_retiros = pd.read_sql_table('retiros', con)
-    return df_pagos, df_retiros
-
-def extract_demographics(con: Engine):
+def extract_demografia(con: Engine):
     df_benco= pd.read_sql_table('cotizante_beneficiario', con)
     df_cotizantes = pd.read_sql_query(
         '''select cedula as numero_identificacion, tipo_cotizante, estado_civil, sexo, fecha_nacimiento,
@@ -88,6 +83,18 @@ def extract_paymetns(con: Engine):
     df = pd.read_sql_query('select * from pagos', con)
     return df
 
-def extract_retirements(con: Engine):
-    df = pd.read_sql_query('select * from retiros', con)
-    return df
+def extract_retiros(con: Engine,con_etl):
+    df_retiros = pd.read_sql_query('select * from retiros', con)
+    df_pagos = pd.read_sql_query('select * from pagos', con)
+    df_per = pd.read_sql_table('dim_persona', con_etl)
+    df_dom = pd.read_sql_query('select * from dim_demografia', con_etl)
+    df_fecha = pd.read_sql_query('select * from dim_fecha', con_etl)
+    return [df_pagos, df_retiros,df_per, df_dom,df_fecha]
+
+def extract_hecho_entrega(source, etl):
+    df_med = extract_medicamentos()
+    df_form = extract_receta(source)
+    df_per = pd.read_sql_table('dim_persona', etl)
+    df_doc = pd.read_sql_table('dim_medico', etl)
+    df_fecha = pd.read_sql_table('dim_fecha',etl)
+    return [df_med,df_form,df_per, df_doc,df_fecha]
