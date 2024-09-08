@@ -36,6 +36,14 @@ def load_hecho_entrega(hecho_entrega: DataFrame, etl_conn: Engine):
     hecho_entrega.to_sql('hecho_entrega', etl_conn, if_exists='append', index=False)
 
 def load(table: DataFrame, etl_conn: Engine, tname, replace: bool = False):
+    """
+
+    :param table: table to load into the database
+    :param etl_conn: sqlalchemy engine to connect to the database
+    :param tname: table name to load into the database
+    :param replace:  when true it deletes existing table data(rows)
+    :return: void it just load the table to the database
+    """
     # statement = insert(f'{table})
     # with etl_conn.connect() as conn:
     #     conn.execute(statement)

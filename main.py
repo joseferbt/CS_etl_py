@@ -91,7 +91,7 @@ if not tnames:
             conn.commit()
 if new_data(etl_conn):
 
-    if config['LOAD_DIMENSIONS']:
+    if True:
         dim_ips = extract.extract_ips(co_sa)
         dim_persona = extract.extract_persona(co_sa)
         dim_medico = extract.extract_medico(co_sa)
@@ -123,9 +123,13 @@ if new_data(etl_conn):
     hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
     load.load_hecho_atencion(hecho_atencion, etl_conn)
     # Hecho Entrega medicamentos
-    hecho_entrega = transform.transfrom_receta([extract.extract_medicamentos(),extract.extract_receta(co_sa)])
+    hecho_entrega, masrecetados = transform.transfrom_receta([extract.extract_medicamentos(),extract.extract_receta(co_sa)])
     load.load_hecho_entrega(hecho_entrega, etl_conn)
     # medicamentos que mas se recetan juntos
+    masrecetados = masrecetados.astype('string')
+    load.load(masrecetados,etl_conn, 'mas_recetados', False)
+    # Hecho Afiliaciones
+
 
     print('success all facts loaded')
 else:

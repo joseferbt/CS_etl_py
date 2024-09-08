@@ -83,3 +83,11 @@ def extract_enfermedades(con : Engine):
     remisiones = pd.read_sql_query('select id_usuario, diagnostico, fecha_atencion  from remisiones', con)
 
     return [urgencias, citas_generales, hospitalizaciones, remisiones]
+
+def extract_paymetns(con: Engine):
+    df = pd.read_sql_query('select * from pagos', con)
+    return df
+
+def extract_retirements(con: Engine):
+    df = pd.read_sql_query('select * from retiros', con)
+    return df

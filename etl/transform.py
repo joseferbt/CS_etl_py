@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta, date
 
 import holidays
@@ -106,16 +107,16 @@ def transfrom_receta(args:list[DataFrame]) -> DataFrame:
     df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo',indicator=True)
     df_fix = df_mer.groupby(['codigo_formula','id_medico','id_usuario','fecha']).agg({ 'nombre' : list    }).reset_index()
     df_fix.rename(columns={'nombre':'medicamentos'}, inplace=True)
-    masrecetados = df_fix['medicamentos']
+    masrecetados = df_fix['medicamentos'].to_list()
     te = TransactionEncoder()
     te_ary = te.fit(masrecetados).transform(masrecetados)
     df = pd.DataFrame(te_ary, columns=te.columns_)
-    frequent_itemsets = apriori(df, min_support=60,use_colnames=True)
+    frequent_itemsets = apriori(df, min_support=0.02, use_colnames=True)
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
-    frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
-                       (frequent_itemsets['support'] >= 0.8) ]
-    print(frequent_itemsets)
-    return df_fix
+    frequent_itemsets = frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
+                       (frequent_itemsets['support'] >= 0.05) ]
+    print(frequent_itemsets.head())
+    return df_fix, frequent_itemsets
 
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
@@ -182,3 +183,4 @@ def transform_enfermedades(args) -> DataFrame:
     df_enfermedades.rename(columns={'id_usuario': 'numero_identificacion','fecha_atencion':'fecha_diagnostico'}, inplace=True)
     return df_enfermedades
 #%%
+
