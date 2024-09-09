@@ -95,12 +95,13 @@ trans_servicio :
   fecha_hora_solicitud timestamp,
   saved                date
   );
-dim_demographics :
-  create table dim_demographics
+dim_demografia :
+  create table dim_demografia
   (key_dim_demo serial primary key,
   numero_identificacion text not null,
   fecha_nacimiento text ,
   sexo char,
+  edad int,
   estado_civil text,
   tipo_discapacidad text,
   tipo_usuario text not null,
@@ -130,15 +131,6 @@ dim_medicamentos:
   precio real,
   tipo text  
   );
-dim_receta:
-  create table dim_receta(
-  key_dim_receta serial primary key,
-  codigo int,
-  id_medico text,
-  id_usuario text,
-  fecha date,
-  medicamentos text
-  );
 hecho_atencion :
   create table hecho_atencion
   (
@@ -146,7 +138,7 @@ hecho_atencion :
   primary key,
   key_trans_servicio     bigint  references trans_servicio(key_trans_servicio),
   key_dim_diag int REFERENCES dim_diag(key_dim_diag),
-  key_dim_demo int REFERENCES dim_demographics(key_dim_demo),
+  key_dim_demo int REFERENCES dim_demografia(key_dim_demo),
   key_fecha_atencion     bigint  REFERENCES public.dim_fecha(key_dim_fecha),
   key_fecha_solicitud    bigint  REFERENCES public.dim_fecha(key_dim_fecha),
   key_dim_persona        bigint  REFERENCES public.dim_persona(key_dim_persona),
@@ -160,4 +152,28 @@ hecho_atencion :
   saved                  date
   );
 
-
+hecho_retiros :
+  create table hecho_retiros
+  (
+  key_hecho_retiros serial primary key ,
+  retirado        boolean,
+  cambio_a_eps    text,
+  key_dim_persona bigint
+  references dim_persona,
+  key_dim_demo    bigint
+  references dim_demografia,
+  key_dim_fecha   bigint
+  references dim_fecha
+  );
+hecho_enrega :
+  create table hecho_entrega
+  (
+  key_hecho_entrega serial primary key,
+  medicamentos    text,
+  key_dim_persona bigint
+  references dim_persona,
+  key_dim_medico  bigint
+  references dim_medico,
+  key_dim_fecha   bigint
+  references dim_fecha
+  );
