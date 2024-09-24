@@ -14,3 +14,13 @@ here you can install the packages by doing
 ```
 pip install -r requirements.txt
 ```
+estructura del config.yml 
+```
+nombre_conexion:
+  drivername: postgresql  
+  user: postgres
+  password : valor_privado
+  port: 5432 # pordefecto 
+  host: localhost
+  dbname: colombia_saludable #nombre de la base de datos
+```
