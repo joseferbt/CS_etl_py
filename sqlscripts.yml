@@ -131,7 +131,6 @@ dim_medicamentos:
   precio real,
   tipo text  
   );
-
 hecho_atencion :
   create table hecho_atencion
   (

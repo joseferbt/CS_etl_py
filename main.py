@@ -89,7 +89,7 @@ if not tnames:
             conn.commit()
 if new_data(etl_conn):
 
-    if True:
+    if config['LOAD_DIMENSIONS']:
         dim_ips = extract.extract_ips(co_sa)
         dim_persona = extract.extract_persona(co_sa)
         dim_medico = extract.extract_medico(co_sa)
@@ -135,5 +135,6 @@ if new_data(etl_conn):
     print('success all facts loaded')
 else:
     print('done not new data')
+#%%
 
 #%%
