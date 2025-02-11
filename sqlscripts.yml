@@ -72,10 +72,10 @@ dim_persona :
 dim_servicio :
   create table dim_servicio
   (
-  key_dim_servicio SERIAL not null
-  primary key,
-  name             text,
+  key_dim_servicio SERIAL not null primary key,
+  id_servicio_pos  text,
   descripcion      text,
+  costo             int,
   saved            date
   );
 
@@ -125,10 +125,10 @@ dim_medicamentos:
   key_dim_medicamentos serial primary key,
   codigo int,
   nombre text,
-  froma text,
+  forma text,
   presentacion text,
   laboratorio text,
-  precio real,
+  precio float,
   tipo text  
   );
 hecho_atencion :
@@ -165,15 +165,13 @@ hecho_retiros :
   key_dim_fecha   bigint
   references dim_fecha
   );
-hecho_enrega :
-  create table hecho_entrega
+hecho_entrega :
+  create table hecho_remision
   (
-  key_hecho_entrega serial primary key,
-  medicamentos    text,
-  key_dim_persona bigint
-  references dim_persona,
-  key_dim_medico  bigint
-  references dim_medico,
-  key_dim_fecha   bigint
-  references dim_fecha
+  key_hecho_entrega    serial primary key,
+  codigo_remision text,
+  key_dim_servicio      bigint references dim_servicio,
+  key_dim_persona       bigint references dim_persona,
+  key_dim_medico        bigint references dim_medico,
+  key_dim_fecha         bigint references dim_fecha
   );

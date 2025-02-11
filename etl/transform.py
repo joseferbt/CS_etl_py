@@ -45,12 +45,6 @@ def transform_persona(args) -> DataFrame:
     return dim_persona
 
 
-def transform_servicio() -> DataFrame:
-    dim_servicio = pd.DataFrame({
-        'name': ['citas', 'hospitalizacion', 'urgencias'],
-        'descripcion': ['servicio de citas medicas', 'servicio de hospitalizacion', 'servicio de urgencias']
-    })
-    return dim_servicio
 
 
 def transform_fecha() -> DataFrame:
@@ -78,9 +72,9 @@ def transform_trans_servicio(args) -> DataFrame:
     df_urgencias.rename(columns={'codigo_urgencia': 'codigo_servicio'}, inplace=True)
     df_citas.rename(columns={'codigo_cita': 'codigo_servicio'}, inplace=True)
 
-    df_citas['tipo_servicio'] = 'citas'
-    df_urgencias['tipo_servicio'] = 'urgencias'
-    df_hosp['tipo_servicio'] = 'hospitalizacion'
+    df_citas['tipo_servicio'] = 'Consulta General'
+    df_urgencias['tipo_servicio'] = 'Urgencias'
+    df_hosp['tipo_servicio'] = 'Hospitalizacion'
 
     columns = ['codigo_servicio', 'id_usuario', 'id_medico', 'fecha_solicitud', 'fecha_atencion', 'hora_atencion',
                'hora_solicitud', 'tipo_servicio']
@@ -147,9 +141,9 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion.drop(columns=['cedula'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_ips[['key_dim_ips', 'id_ips']])
     hecho_atencion.drop(columns=['id_ips'], inplace=True)
-    hecho_atencion = hecho_atencion.merge(dim_servicio[['name', 'key_dim_servicio']], left_on='tipo_servicio',
-                                          right_on='name')
-    hecho_atencion.drop(columns=['name', 'tipo_servicio'], inplace=True)
+    hecho_atencion = hecho_atencion.merge(dim_servicio[['descripcion', 'key_dim_servicio']], left_on='tipo_servicio',
+                                          right_on='descripcion')
+    hecho_atencion.drop(columns=['descripcion', 'tipo_servicio'], inplace=True)
     hecho_atencion['tiempo_espera'] = hecho_atencion['fecha_hora_atencion'] - hecho_atencion['fecha_hora_solicitud']
     hecho_atencion['tiempo_espera_dias'] = hecho_atencion['tiempo_espera'].dt.days
     hecho_atencion['tiempo_espera_minutos'] = hecho_atencion['tiempo_espera'].dt.seconds // 60
@@ -218,3 +212,19 @@ def transform_hecho_retiros(args,months,lastdate='2008-11-15',) -> DataFrame:
     hecho_retiros.drop(columns=['numero_identificacion_y','numero_identificacion_x','date','fecha_retiro','id_usuario'],inplace=True)
 
     return hecho_retiros
+
+def transform_remisiones(args) -> DataFrame:
+    df_remisiones, df_servicios, persona, medico, fecha = args
+    df_remisiones = df_remisiones.merge(df_servicios, on='servicio_pos', how='inner')
+    df_remisiones.drop(columns=['servicio_pos'], inplace=True)
+    df_remisiones = df_remisiones.merge(persona, left_on='id_usuario', right_on='numero_identificacion', how='left')
+    df_remisiones = df_remisiones.merge(medico, left_on='id_medico', right_on='cedula', how='left')
+    df_remisiones['fecha_remision'] = pd.to_datetime(df_remisiones['fecha_remision'])
+    df_remisiones = df_remisiones.merge(fecha, left_on='fecha_remision', right_on='date', how='left')
+    df_remisiones = df_remisiones[['codigo_remision',
+                                   'key_dim_servicio',
+                                   'key_dim_persona',
+                                   'key_dim_medico',
+                                   'key_dim_fecha' ]]
+    return df_remisiones
+

@@ -41,6 +41,7 @@ def push_dimensions(co_sa, etl_conn):
     trans_servicio = extract.extract_trans_servicio(co_sa)
     dim_demo = extract.extract_demografia(co_sa)
     dim_diag = extract.extract_enfermedades(co_sa)
+    dim_servicio = extract.extract_servicios(co_sa)
 
     # transform
     dim_ips = transform.transform_ips(dim_ips)
@@ -48,7 +49,7 @@ def push_dimensions(co_sa, etl_conn):
     dim_medico = transform.transform_medico(dim_medico)
     trans_servicio = transform.transform_trans_servicio(trans_servicio)
     dim_fecha = transform.transform_fecha()
-    dim_servicio = transform.transform_servicio()
+
     dim_demo = transform.transform_demografia(dim_demo)
     dim_diag = transform.transform_enfermedades(dim_diag)
 
@@ -87,6 +88,7 @@ if not tnames:
         for key, val in sql.items():
             cur.execute(val)
             conn.commit()
+
 if new_data(etl_conn):
 
     if config['LOAD_DIMENSIONS']:
@@ -96,6 +98,9 @@ if new_data(etl_conn):
         trans_servicio = extract.extract_trans_servicio(co_sa)
         dim_demo = extract.extract_demografia(co_sa)
         dim_diag = extract.extract_enfermedades(co_sa)
+        dim_drug = extract.extract_medicamentos(config['medicamentos'])
+        dim_servicio = extract.extract_servicios(co_sa)
+
 
         # transform
         dim_ips = transform.transform_ips(dim_ips)
@@ -103,9 +108,10 @@ if new_data(etl_conn):
         dim_medico = transform.transform_medico(dim_medico)
         trans_servicio = transform.transform_trans_servicio(trans_servicio)
         dim_fecha = transform.transform_fecha()
-        dim_servicio = transform.transform_servicio()
         dim_demo = transform.transform_demografia(dim_demo)
         dim_diag = transform.transform_enfermedades(dim_diag)
+
+
 
         load.load(dim_ips, etl_conn, 'dim_ips', True)
         load.load(dim_fecha, etl_conn, 'dim_fecha', True)
@@ -115,6 +121,8 @@ if new_data(etl_conn):
         load.load(trans_servicio, etl_conn, 'trans_servicio', True)
         load.load(dim_diag, etl_conn, 'dim_diag', True)
         load.load(dim_demo, etl_conn, 'dim_demografia', True)
+        load.load(dim_drug,etl_conn,'dim_medicamentos',True)
+
 
     #hecho Atencion
     hecho_atencion = extract.extract_hecho_atencion(etl_conn)
@@ -131,6 +139,10 @@ if new_data(etl_conn):
     hecho_retiros = extract.extract_retiros(co_sa,etl_conn)
     hecho_retiros = transform.transform_hecho_retiros(hecho_retiros,1)
     load.load(hecho_retiros, etl_conn, 'hecho_retiros', False)
+    # Hecho remision
+    hecho_remision = extract.extract_remisiones(co_sa,etl_conn)
+    hecho_remision = transform.transform_remisiones(hecho_remision)
+    load.load(hecho_remision, etl_conn, 'hecho_remision', False)
 
     print('success all facts loaded')
 else:

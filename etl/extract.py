@@ -92,9 +92,30 @@ def extract_retiros(con: Engine,con_etl):
     return [df_pagos, df_retiros,df_per, df_dom,df_fecha]
 
 def extract_hecho_entrega(source, etl):
-    df_med = extract_medicamentos()
+    df_med = pd.read_sql_table('dim_medicamentos',etl)
     df_form = extract_receta(source)
     df_per = pd.read_sql_table('dim_persona', etl)
     df_doc = pd.read_sql_table('dim_medico', etl)
     df_fecha = pd.read_sql_table('dim_fecha',etl)
     return [df_med,df_form,df_per, df_doc,df_fecha]
+
+def extract_remisiones(con : Engine,etl):
+    df_persona = pd.read_sql_query('select key_dim_persona, numero_identificacion from dim_persona', etl)
+    df_medico = pd.read_sql_query('select key_dim_medico, cedula from  dim_medico',etl)
+    df_fecha = pd.read_sql_query('select date, key_dim_fecha  from dim_fecha',etl)
+    df_remisiones = pd.read_sql_query('select id_usuario, servicio_pos, id_medico, fecha_remision, codigo_remision from remisiones', con)
+    df_servicio_pos = pd.read_sql_query('select key_dim_servicio, id_servicio_pos servicio_pos from dim_servicio', etl)
+    return [df_remisiones, df_servicio_pos,df_persona,df_medico,df_fecha]
+
+def extract_medicamentos(source):
+    df_med = pd.read_excel(source)
+    return df_med
+
+def extract_servicios(conn):
+    df_servicios = pd.read_sql_table('servicios_pos', conn)
+    return df_servicios
+
+
+
+
+#%%
