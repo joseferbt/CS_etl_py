@@ -3,8 +3,6 @@ import datetime
 from datetime import date
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
-from mlxtend.preprocessing import TransactionEncoder
-from mlxtend.frequent_patterns import apriori
 import yaml
 from etl import extract, transform, load
 import psycopg2
@@ -130,7 +128,7 @@ if new_data(etl_conn):
     load.load_hecho_atencion(hecho_atencion, etl_conn)
     # Hecho Entrega medicamentos
     hecho_entrega = extract.extract_hecho_entrega(co_sa,etl_conn)
-    hecho_entrega, masrecetados = transform.transfrom_hecho_entrega(hecho_entrega)
+    hecho_entrega, masrecetados = transform.transform_hecho_entrega(hecho_entrega)
     load.load_hecho_entrega(hecho_entrega, etl_conn)
     # medicamentos que mas se recetan juntos
     masrecetados = masrecetados.astype('string')
@@ -147,6 +145,8 @@ if new_data(etl_conn):
     print('success all facts loaded')
 else:
     print('done not new data')
+    df = extract.extract_hecho_entrega(co_sa,etl_conn)
+    transform.transform_hecho_entrega(df)
 #%%
 
 #%%

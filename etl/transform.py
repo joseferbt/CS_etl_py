@@ -94,23 +94,23 @@ def transform_trans_servicio(args) -> DataFrame:
     trans_servicio.reset_index(drop=True, inplace=True)
     return trans_servicio
 
-def transfrom_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
+def transform_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
     df_med, df_form, df_per, df_doc, df_fecha = args
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
     df_form_expl = df_form.explode('medicamentos')
     df_med = df_med.astype('string')
-    df_mer = df_form_expl.merge(df_med[['codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
-    df_fix = df_mer.groupby(['codigo_formula','id_medico','id_usuario','fecha']).agg({ 'nombre' : list    }).reset_index()
-    df_fix.rename(columns={'nombre':'medicamentos'}, inplace=True)
-    df_fix = df_fix.merge(df_per[['numero_identificacion','key_dim_persona']]
-                 ,right_on='numero_identificacion',left_on='id_usuario')
-    df_fix = df_fix.merge(df_doc[['cedula','key_dim_medico']],
-                 left_on='id_medico',right_on='cedula')
+    df_mer = df_form_expl.merge(df_med[['key_dim_medicamentos','codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
+    df_mer = df_mer.merge(df_per[['numero_identificacion','key_dim_persona']]
+                          ,right_on='numero_identificacion',left_on='id_usuario')
+    df_mer = df_mer.merge(df_doc[['cedula','key_dim_medico']],
+                          left_on='id_medico',right_on='cedula')
     df_fecha['date'] = df_fecha['date'].dt.date
+    df_mer = df_mer.merge(df_fecha[['key_dim_fecha','date']],left_on='fecha',right_on='date')
+    df_mer.drop(columns = ['cedula','medicamentos','numero_identificacion','id_usuario','id_medico','codigo','fecha','date'],inplace=True)
+    df_fix = df_mer.groupby(['codigo_formula','key_dim_medico','key_dim_persona','key_dim_fecha','key_dim_medicamentos']).agg({ 'nombre' : list    }).reset_index()
 
-    df_fix = df_fix.merge(df_fecha[['key_dim_fecha','date']],left_on='fecha',right_on='date')
-    df_fix.drop(columns = ['cedula','numero_identificacion','id_usuario','id_medico','codigo_formula','fecha','date'],inplace=True)
-    masrecetados = df_fix['medicamentos'].to_list()
+
+    masrecetados = df_fix['nombre'].to_list()
     te = TransactionEncoder()
     te_ary = te.fit(masrecetados).transform(masrecetados)
     df = pd.DataFrame(te_ary, columns=te.columns_)
@@ -118,7 +118,7 @@ def transfrom_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
     frequent_itemsets = frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
                        (frequent_itemsets['support'] >= 0.05) ]
-    return df_fix, frequent_itemsets
+    return df_mer.drop('nombre',axis=1), frequent_itemsets
 
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:

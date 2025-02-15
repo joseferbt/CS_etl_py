@@ -165,13 +165,22 @@ hecho_retiros :
   key_dim_fecha   bigint
   references dim_fecha
   );
-hecho_entrega :
+hecho_remision :
   create table hecho_remision
   (
-  key_hecho_entrega    serial primary key,
+  key_hecho_remision    serial primary key,
   codigo_remision text,
   key_dim_servicio      bigint references dim_servicio,
   key_dim_persona       bigint references dim_persona,
   key_dim_medico        bigint references dim_medico,
   key_dim_fecha         bigint references dim_fecha
+  );
+hecho_entrega :
+  create table hecho_entrega(
+  key_hecho_entrega serial primary key,
+  codigo_formula int ,
+  key_dim_medicamentos int references dim_medicamentos,
+  key_dim_persona int references dim_persona,
+  key_dim_medico int references dim_medico,
+  key_dim_fecha int references dim_fecha
   );
