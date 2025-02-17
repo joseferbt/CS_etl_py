@@ -1,3 +1,5 @@
+
+#%%
 import datetime
 from datetime import timedelta, date, datetime
 from typing import Tuple, Any
@@ -67,18 +69,22 @@ def transform_fecha() -> DataFrame:
     return dim_fecha
 
 def transform_trans_servicio(args) -> DataFrame:
-    df_citas, df_urgencias, df_hosp = args
+    df_citas, df_urgencias, df_hosp,rem = args
     df_hosp.rename(columns={'codigo_hospitalizacion': 'codigo_servicio'}, inplace=True)
     df_urgencias.rename(columns={'codigo_urgencia': 'codigo_servicio'}, inplace=True)
     df_citas.rename(columns={'codigo_cita': 'codigo_servicio'}, inplace=True)
+    rem.rename(columns={'codigo_rem': 'codigo_servicio',
+                        'fecha_remision':'fecha_solicitud',
+                        'hora_remision':'hora_solicitud'}, inplace=True)
+    #rem.drop('id_medico_rem', axis=1, inplace=True)
+    df_citas['servicio_pos'] = '1234'
+    df_urgencias['servicio_pos'] = '1367'
+    df_hosp['servicio_pos'] ='1346'
 
-    df_citas['tipo_servicio'] = 'Consulta General'
-    df_urgencias['tipo_servicio'] = 'Urgencias'
-    df_hosp['tipo_servicio'] = 'Hospitalizacion'
-
-    columns = ['codigo_servicio', 'id_usuario', 'id_medico', 'fecha_solicitud', 'fecha_atencion', 'hora_atencion',
-               'hora_solicitud', 'tipo_servicio']
-    trans_servicio = pd.concat([df_hosp, df_urgencias, df_citas], axis=0)
+    columns = ['codigo_servicio', 'id_usuario', 'id_medico',
+               'fecha_solicitud', 'fecha_atencion', 'hora_atencion',
+               'hora_solicitud', 'servicio_pos']
+    trans_servicio = pd.concat([df_hosp, df_urgencias, df_citas,rem], axis=0)
     trans_servicio.head()
     del_columns = set(trans_servicio.columns) - set(columns)
     trans_servicio.drop(columns=del_columns, inplace=True)
@@ -95,34 +101,44 @@ def transform_trans_servicio(args) -> DataFrame:
     return trans_servicio
 
 def transform_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
-    df_med, df_form, df_per, df_doc, df_fecha = args
+    df_med, df_form, df_per, df_doc, df_fecha, df_demo = args
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
     df_form_expl = df_form.explode('medicamentos')
     df_med = df_med.astype('string')
-    df_mer = df_form_expl.merge(df_med[['key_dim_medicamentos','codigo','nombre']], left_on='medicamentos',right_on= 'codigo')
+    df_mer = df_form_expl.merge(df_med[['key_dim_medicamentos','codigo','nombre','precio']], left_on='medicamentos',right_on= 'codigo')
     df_mer = df_mer.merge(df_per[['numero_identificacion','key_dim_persona']]
                           ,right_on='numero_identificacion',left_on='id_usuario')
+    df_mer.drop(columns=['numero_identificacion'], inplace=True)
+    df_mer = df_mer.merge(df_demo[['numero_identificacion','key_dim_demo']],
+                          left_on='id_usuario',
+                          right_on='numero_identificacion')
     df_mer = df_mer.merge(df_doc[['cedula','key_dim_medico']],
                           left_on='id_medico',right_on='cedula')
     df_fecha['date'] = df_fecha['date'].dt.date
+
     df_mer = df_mer.merge(df_fecha[['key_dim_fecha','date']],left_on='fecha',right_on='date')
-    df_mer.drop(columns = ['cedula','medicamentos','numero_identificacion','id_usuario','id_medico','codigo','fecha','date'],inplace=True)
-    df_fix = df_mer.groupby(['codigo_formula','key_dim_medico','key_dim_persona','key_dim_fecha','key_dim_medicamentos']).agg({ 'nombre' : list    }).reset_index()
+    df_mer.drop(columns = ['cedula','medicamentos','id_usuario','numero_identificacion'
+        ,'id_medico','codigo','fecha','date'],inplace=True)
 
-
+    df_fix = df_mer[['codigo_formula','nombre']].groupby(['codigo_formula']).agg({ 'nombre' : list    }).reset_index()
+    print(df_fix.info())
     masrecetados = df_fix['nombre'].to_list()
+    print(df_fix['nombre'].head())
     te = TransactionEncoder()
     te_ary = te.fit(masrecetados).transform(masrecetados)
     df = pd.DataFrame(te_ary, columns=te.columns_)
+    print(df.head())
     frequent_itemsets = apriori(df, min_support=0.02, use_colnames=True)
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
+    print(frequent_itemsets.head())
     frequent_itemsets = frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
                        (frequent_itemsets['support'] >= 0.05) ]
+    print(frequent_itemsets.head())
     return df_mer.drop('nombre',axis=1), frequent_itemsets
 
 # modificar para anadir demografia y enfermedades(diagnostico)
 def transform_hecho_atencion(args) -> DataFrame:
-    df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha,dim_diag,dim_demo = args
+    df_trans, dim_persona, dim_medico, dim_servicio, dim_ips, dim_fecha,dim_diag,dim_demo= args
     hecho_atencion = pd.merge(df_trans, dim_fecha[['date', 'key_dim_fecha']], left_on='fecha_atencion', right_on='date')
     hecho_atencion.drop(columns=['date'], inplace=True)
     hecho_atencion.rename(
@@ -141,22 +157,18 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion.drop(columns=['cedula'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_ips[['key_dim_ips', 'id_ips']])
     hecho_atencion.drop(columns=['id_ips'], inplace=True)
-    hecho_atencion = hecho_atencion.merge(dim_servicio[['descripcion', 'key_dim_servicio']], left_on='tipo_servicio',
-                                          right_on='descripcion')
-    hecho_atencion.drop(columns=['descripcion', 'tipo_servicio'], inplace=True)
+    hecho_atencion = hecho_atencion.merge(dim_servicio[['id_servicio_pos', 'key_dim_servicio', 'costo']], left_on='servicio_pos',
+                                          right_on='id_servicio_pos')
+    hecho_atencion.drop(columns=['id_servicio_pos'], inplace=True)
     hecho_atencion['tiempo_espera'] = hecho_atencion['fecha_hora_atencion'] - hecho_atencion['fecha_hora_solicitud']
     hecho_atencion['tiempo_espera_dias'] = hecho_atencion['tiempo_espera'].dt.days
     hecho_atencion['tiempo_espera_minutos'] = hecho_atencion['tiempo_espera'].dt.seconds // 60
     hecho_atencion['tiempo_espera_horas'] = hecho_atencion['tiempo_espera'].dt.seconds // (60 * 60)
     hecho_atencion['tiempo_espera_segundos'] = hecho_atencion['tiempo_espera'].dt.seconds
     hecho_atencion["saved"] = date.today()
-
-
-
     hecho_atencion.drop(
-        columns=['tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'hora_solicitud', 'hora_atencion',
+        columns=['servicio_pos','tiempo_espera', 'fecha_atencion', 'fecha_solicitud', 'hora_solicitud', 'hora_atencion',
                  'fecha_hora_solicitud', 'fecha_hora_atencion', 'codigo_servicio'], inplace=True)
-
     return hecho_atencion
 
 def transform_pay_retiros(args) -> DataFrame:
@@ -164,16 +176,13 @@ def transform_pay_retiros(args) -> DataFrame:
 
 def transform_demografia(args) -> DataFrame:
     df_benco, df_cot, df_ben, df_ips, empresa,empcot = args
-    #df_ben = pd.merge(df_benco, df_ben, right_on='id_beneficiario',left_on='beneficiario')
-    #df_ben.drop(columns=['id_beneficiario'], inplace=True)
     df_ben['tipo_usuario'] = 'beneficiario'
     df_cot.rename(columns={'tipo_cotizante': 'tipo_usuario'}, inplace=True)
 
-    df_cot = df_cot.merge(df_ips)
+
     df_cot = df_cot.merge(empcot)
     df_cot = df_cot.merge(empresa)
     df_demo = pd.concat([df_ben, df_cot])
-    #df_demo.fillna('NO APLICA', inplace=True)
     df_demo['edad'] = df_demo['fecha_nacimiento'].apply(lambda x: (date.today() - x).days // 365)
     df_demo.replace(np.nan, 'NO APLICA', inplace=True)
     df_demo.drop(columns=['nit','id_ips'], inplace=True)
@@ -214,17 +223,21 @@ def transform_hecho_retiros(args,months,lastdate='2008-11-15',) -> DataFrame:
     return hecho_retiros
 
 def transform_remisiones(args) -> DataFrame:
-    df_remisiones, df_servicios, persona, medico, fecha = args
+    df_remisiones, df_servicios, persona, medico, fecha , demo= args
     df_remisiones = df_remisiones.merge(df_servicios, on='servicio_pos', how='inner')
     df_remisiones.drop(columns=['servicio_pos'], inplace=True)
     df_remisiones = df_remisiones.merge(persona, left_on='id_usuario', right_on='numero_identificacion', how='left')
     df_remisiones = df_remisiones.merge(medico, left_on='id_medico', right_on='cedula', how='left')
     df_remisiones['fecha_remision'] = pd.to_datetime(df_remisiones['fecha_remision'])
     df_remisiones = df_remisiones.merge(fecha, left_on='fecha_remision', right_on='date', how='left')
+    df_remisiones = df_remisiones.merge(demo[['numero_identificacion','key_dim_demo']],
+                                        left_on='id_usuario',right_on='numero_identificacion',how='left')
     df_remisiones = df_remisiones[['codigo_remision',
+                                   'key_dim_demo',
                                    'key_dim_servicio',
                                    'key_dim_persona',
                                    'key_dim_medico',
-                                   'key_dim_fecha' ]]
+                                   'key_dim_fecha',
+                                   'costo']]
     return df_remisiones
 

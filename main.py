@@ -126,10 +126,12 @@ if new_data(etl_conn):
     hecho_atencion = extract.extract_hecho_atencion(etl_conn)
     hecho_atencion = transform.transform_hecho_atencion(hecho_atencion)
     load.load_hecho_atencion(hecho_atencion, etl_conn)
+    print('Done atencion fact')
     # Hecho Entrega medicamentos
     hecho_entrega = extract.extract_hecho_entrega(co_sa,etl_conn)
     hecho_entrega, masrecetados = transform.transform_hecho_entrega(hecho_entrega)
     load.load_hecho_entrega(hecho_entrega, etl_conn)
+    print('Done entrega fact')
     # medicamentos que mas se recetan juntos
     masrecetados = masrecetados.astype('string')
     load.load(masrecetados,etl_conn, 'mas_recetados', False)
@@ -137,16 +139,11 @@ if new_data(etl_conn):
     hecho_retiros = extract.extract_retiros(co_sa,etl_conn)
     hecho_retiros = transform.transform_hecho_retiros(hecho_retiros,1)
     load.load(hecho_retiros, etl_conn, 'hecho_retiros', False)
-    # Hecho remision
-    hecho_remision = extract.extract_remisiones(co_sa,etl_conn)
-    hecho_remision = transform.transform_remisiones(hecho_remision)
-    load.load(hecho_remision, etl_conn, 'hecho_remision', False)
+    print('Done retiros fact')
 
     print('success all facts loaded')
 else:
     print('done not new data')
-    df = extract.extract_hecho_entrega(co_sa,etl_conn)
-    transform.transform_hecho_entrega(df)
-#%%
+    transform.transform_hecho_entrega(extract.extract_hecho_entrega(co_sa,etl_conn))
 
 #%%

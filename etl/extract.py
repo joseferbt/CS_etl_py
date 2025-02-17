@@ -36,7 +36,8 @@ def extract_trans_servicio(con: Engine):
     df_citas = pd.read_sql_table('citas_generales', con)
     df_urgencias = pd.read_sql_table('urgencias', con)
     df_hosp = pd.read_sql_table('hospitalizaciones', con)
-    return [df_citas, df_urgencias, df_hosp]
+    rem = pd.read_sql_table('remisiones', con)
+    return [df_citas, df_urgencias, df_hosp,rem]
 
 def extract_hecho_atencion(con: Engine):
     df_diag = pd.read_sql_table('dim_diag', con)
@@ -47,7 +48,7 @@ def extract_hecho_atencion(con: Engine):
     dim_servicio = pd.read_sql_table('dim_servicio', con)
     dim_ips = pd.read_sql_table('dim_ips', con)
     dim_fecha = pd.read_sql_table('dim_fecha', con)
-    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_diag,df_demo]#editar para anadir diag y demo
+    return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_diag,df_demo ]
 
 def extract_medicamentos():
     df_medicamentos = pd.read_excel('sources/medicamentos.xls')
@@ -94,18 +95,20 @@ def extract_retiros(con: Engine,con_etl):
 def extract_hecho_entrega(source, etl):
     df_med = pd.read_sql_table('dim_medicamentos',etl)
     df_form = extract_receta(source)
+    df_demo = pd.read_sql_table('dim_demografia', etl)
     df_per = pd.read_sql_table('dim_persona', etl)
     df_doc = pd.read_sql_table('dim_medico', etl)
     df_fecha = pd.read_sql_table('dim_fecha',etl)
-    return [df_med,df_form,df_per, df_doc,df_fecha]
+    return [df_med,df_form,df_per, df_doc,df_fecha,df_demo]
 
 def extract_remisiones(con : Engine,etl):
+    df_demo = pd.read_sql_table('dim_demografia', etl)
     df_persona = pd.read_sql_query('select key_dim_persona, numero_identificacion from dim_persona', etl)
     df_medico = pd.read_sql_query('select key_dim_medico, cedula from  dim_medico',etl)
     df_fecha = pd.read_sql_query('select date, key_dim_fecha  from dim_fecha',etl)
     df_remisiones = pd.read_sql_query('select id_usuario, servicio_pos, id_medico, fecha_remision, codigo_remision from remisiones', con)
-    df_servicio_pos = pd.read_sql_query('select key_dim_servicio, id_servicio_pos servicio_pos from dim_servicio', etl)
-    return [df_remisiones, df_servicio_pos,df_persona,df_medico,df_fecha]
+    df_servicio_pos = pd.read_sql_query('select key_dim_servicio, id_servicio_pos servicio_pos,costo from dim_servicio', etl)
+    return [df_remisiones, df_servicio_pos,df_persona,df_medico,df_fecha,df_demo]
 
 def extract_medicamentos(source):
     df_med = pd.read_excel(source)

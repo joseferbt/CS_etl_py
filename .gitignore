@@ -5,3 +5,5 @@ config.yml
 sources*
 test*
 *.csv
+*.pbix
+*.sql
