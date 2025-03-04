@@ -121,19 +121,19 @@ def transform_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
         ,'id_medico','codigo','fecha','date'],inplace=True)
 
     df_fix = df_mer[['codigo_formula','nombre']].groupby(['codigo_formula']).agg({ 'nombre' : list    }).reset_index()
-    print(df_fix.info())
+
     masrecetados = df_fix['nombre'].to_list()
-    print(df_fix['nombre'].head())
+
     te = TransactionEncoder()
     te_ary = te.fit(masrecetados).transform(masrecetados)
     df = pd.DataFrame(te_ary, columns=te.columns_)
-    print(df.head())
+
     frequent_itemsets = apriori(df, min_support=0.02, use_colnames=True)
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
-    print(frequent_itemsets.head())
+
     frequent_itemsets = frequent_itemsets[ (frequent_itemsets['length'] >= 2) &
                        (frequent_itemsets['support'] >= 0.05) ]
-    print(frequent_itemsets.head())
+
     return df_mer.drop('nombre',axis=1), frequent_itemsets
 
 # modificar para anadir demografia y enfermedades(diagnostico)
