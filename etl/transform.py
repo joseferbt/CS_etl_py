@@ -175,10 +175,10 @@ def transform_pay_retiros(args) -> DataFrame:
     return args
 
 def transform_demografia(args) -> DataFrame:
+    #corregir demografia
     df_benco, df_cot, df_ben, df_ips, empresa,empcot = args
     df_ben['tipo_usuario'] = 'beneficiario'
     df_cot.rename(columns={'tipo_cotizante': 'tipo_usuario'}, inplace=True)
-
 
     df_cot = df_cot.merge(empcot)
     df_cot = df_cot.merge(empresa)
