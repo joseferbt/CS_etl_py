@@ -175,9 +175,11 @@ def transform_pay_retiros(args) -> DataFrame:
     return args
 
 def transform_demografia(args) -> DataFrame:
-    #corregir demografia
     df_benco, df_cot, df_ben, df_ips, empresa,empcot = args
     df_ben['tipo_usuario'] = 'beneficiario'
+    df_ben = df_ben.merge(df_benco, left_on='numero_identificacion',right_on='beneficiario')
+    df_ben = df_ben.merge(df_cot[['numero_identificacion','estracto','id_ips']],
+                          left_on= 'cotizante',right_on='numero_identificacion', suffixes=('', '_cot'))
     df_cot.rename(columns={'tipo_cotizante': 'tipo_usuario'}, inplace=True)
 
     df_cot = df_cot.merge(empcot)
@@ -185,7 +187,7 @@ def transform_demografia(args) -> DataFrame:
     df_demo = pd.concat([df_ben, df_cot])
     df_demo['edad'] = df_demo['fecha_nacimiento'].apply(lambda x: (date.today() - x).days // 365)
     df_demo.replace(np.nan, 'NO APLICA', inplace=True)
-    df_demo.drop(columns=['nit','id_ips'], inplace=True)
+    df_demo.drop(columns=['nit','numero_identificacion_cot','beneficiario','cotizante'], inplace=True)
     return df_demo
 
 def transform_enfermedades(args) -> DataFrame:

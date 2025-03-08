@@ -144,6 +144,5 @@ if new_data(etl_conn):
     print('success all facts loaded')
 else:
     print('done not new data')
-    transform.transform_hecho_entrega(extract.extract_hecho_entrega(co_sa,etl_conn))
 
 #%%
