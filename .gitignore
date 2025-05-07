@@ -2,7 +2,6 @@
 *.txt
 config.yml
 *.db
-sources*
 test*
 *.csv
 *.pbix
