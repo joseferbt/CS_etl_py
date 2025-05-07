@@ -111,7 +111,8 @@ dim_demografia :
   salario_base text,
   municipio text,
   departamento text,
-  empresa text
+  empresa text,
+  id_ips text
   );
 dim_diag :
   create table dim_diag (

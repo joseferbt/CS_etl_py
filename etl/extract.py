@@ -50,10 +50,10 @@ def extract_hecho_atencion(con: Engine):
     dim_fecha = pd.read_sql_table('dim_fecha', con)
     return [df_trans,dim_persona,dim_medico,dim_servicio,dim_ips,dim_fecha,df_diag,df_demo ]
 
-def extract_medicamentos():
-    df_medicamentos = pd.read_excel('sources/medicamentos.xls')
-    df_medicamentos.rename(columns={'Código':'codigo', 'Nombre Genérico':'nombre','Forma Farmacéutica':'forma',
-                                    'Laboratorio y Registro':'laboratorio', 'Tipo Medicamento':'tipo'}, inplace=True)
+def extract_medicamentos(path):
+    df_medicamentos = pd.read_excel(path)
+    df_medicamentos = df_medicamentos.rename(columns={'Código':'codigo', 'Nombre Genérico':'nombre','Forma Farmacéutica':'forma',
+                                    'Laboratorio y Registro':'laboratorio', 'Tipo Medicamento':'tipo', 'Presentación':'presentacion','Precio':'precio'})
     return df_medicamentos
 def extract_receta(con:Engine):
     df_receta = pd.read_sql_query('''select codigo_formula , id_medico, id_usuario, fecha, 
@@ -109,10 +109,6 @@ def extract_remisiones(con : Engine,etl):
     df_remisiones = pd.read_sql_query('select id_usuario, servicio_pos, id_medico, fecha_remision, codigo_remision from remisiones', con)
     df_servicio_pos = pd.read_sql_query('select key_dim_servicio, id_servicio_pos servicio_pos,costo from dim_servicio', etl)
     return [df_remisiones, df_servicio_pos,df_persona,df_medico,df_fecha,df_demo]
-
-def extract_medicamentos(source):
-    df_med = pd.read_excel(source)
-    return df_med
 
 def extract_servicios(conn):
     df_servicios = pd.read_sql_table('servicios_pos', conn)

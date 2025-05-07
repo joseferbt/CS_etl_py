@@ -6,3 +6,4 @@ test*
 *.csv
 *.pbix
 *.sql
+*.pyc

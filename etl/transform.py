@@ -103,6 +103,8 @@ def transform_trans_servicio(args) -> DataFrame:
 def transform_hecho_entrega(args:list[DataFrame]) -> tuple[Any, Any]:
     df_med, df_form, df_per, df_doc, df_fecha, df_demo = args
     df_form['medicamentos'] = df_form['medicamentos'].apply(lambda x: x.split(';'))
+
+
     df_form_expl = df_form.explode('medicamentos')
     df_med = df_med.astype('string')
     df_mer = df_form_expl.merge(df_med[['key_dim_medicamentos','codigo','nombre','precio']], left_on='medicamentos',right_on= 'codigo')
@@ -151,8 +153,9 @@ def transform_hecho_atencion(args) -> DataFrame:
     hecho_atencion.rename(columns={'key_dim_fecha': 'key_fecha_solicitud'}, inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_persona[['key_dim_persona', 'numero_identificacion']])
     hecho_atencion = hecho_atencion.merge(dim_demo[['key_dim_demo', 'numero_identificacion']])
-    hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'numero_identificacion']])
-    hecho_atencion.drop(columns=['numero_identificacion'], inplace=True)
+    hecho_atencion = hecho_atencion.merge(dim_diag[['key_dim_diag', 'numero_identificacion','fecha_diagnostico']],left_on=['numero_identificacion', 'fecha_atencion'],
+                                          right_on=['numero_identificacion', 'fecha_diagnostico'],)
+    hecho_atencion.drop(columns=['numero_identificacion','fecha_diagnostico'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_medico[['key_dim_medico', 'cedula', 'id_ips']])
     hecho_atencion.drop(columns=['cedula'], inplace=True)
     hecho_atencion = hecho_atencion.merge(dim_ips[['key_dim_ips', 'id_ips']])
