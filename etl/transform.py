@@ -1,4 +1,3 @@
-
 #%%
 import datetime
 from datetime import timedelta, date, datetime
@@ -67,6 +66,7 @@ def transform_fecha() -> DataFrame:
     dim_fecha["weekend"] = dim_fecha["weekday"].apply(lambda x: x > 4)
     dim_fecha["saved"] = date.today()
     return dim_fecha
+
 
 def transform_trans_servicio(args) -> DataFrame:
     df_citas, df_urgencias, df_hosp,rem = args
